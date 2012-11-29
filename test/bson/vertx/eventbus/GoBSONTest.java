@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
  * This class contains tests inspired from the gobson project.
@@ -31,6 +32,10 @@ public class GoBSONTest {
         Buffer buffer = BSONCodec.encode(empty);
 
         assertArrayEquals(EMPTY_BSON, buffer.getBytes());
+
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(EMPTY_BSON));
+        assertEquals(empty, document);
     }
 
     @Test
@@ -47,6 +52,10 @@ public class GoBSONTest {
                 0x00};
 
         assertArrayEquals(expected, buffer.getBytes());
+
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -63,6 +72,9 @@ public class GoBSONTest {
                 0x00};
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -82,7 +94,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
-
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -100,6 +114,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -117,6 +134,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -134,6 +154,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -151,6 +174,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -168,6 +194,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -185,6 +214,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -202,6 +234,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -219,6 +254,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -236,6 +274,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -253,6 +294,9 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 
     @Test
@@ -270,5 +314,8 @@ public class GoBSONTest {
         };
 
         assertArrayEquals(expected, buffer.getBytes());
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertEquals(json, document);
     }
 }
