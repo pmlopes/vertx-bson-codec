@@ -3,12 +3,18 @@ package bson.vertx.eventbus;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class BSONCodecTest {
+/**
+ * This class contains tests based on jsonspec.org website
+ */
+public class BSONSPECTest {
 
     @Test
     public void testEncodeBSONSPEC1() {
@@ -214,23 +220,4 @@ public class BSONCodecTest {
 
         assertEquals(expected, json);
     }
-
-    @Test
-    public void testEncodeMap() {
-        Map<String, Object> test = new HashMap<>();
-        test.put("hello", "world");
-        test.put("PI", Math.PI);
-        test.put("null", null);
-        test.put("createDate", new Date(0));
-        List<Object> list = new ArrayList<>();
-        list.add("awesome");
-        list.add(5.05);
-        list.add(1986);
-        list.add(true);
-        list.add(null);
-        list.add(new Date());
-        test.put("BSON", list);
-
-        BSONCodec.encode(test);
-    }
-} 
+}

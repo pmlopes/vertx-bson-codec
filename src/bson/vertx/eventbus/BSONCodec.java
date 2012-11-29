@@ -186,9 +186,6 @@ final class BSONCodec {
 
         // skip the last 0x00
         int length = pos + getInt(buffer, pos) - 1;
-        if (length == pos) {
-            return null;
-        }
         pos += 4;
 
         Map<String, Object> document = new HashMap<>();
@@ -267,9 +264,6 @@ final class BSONCodec {
     private static List<Object> decodeList(Buffer buffer, int pos) {
         // skip the last 0x00
         int length = pos + getInt(buffer, pos) - 1;
-        if (length == pos) {
-            return null;
-        }
         pos += 4;
 
         List<Object> list = new LinkedList<>();
@@ -343,38 +337,5 @@ final class BSONCodec {
         }
 
         return list;
-    }
-
-    public static void main(String[] args) throws Exception {
-        Map<String, Object> test = new HashMap<>();
-        test.put("hello", "world");
-        test.put("PI", Math.PI);
-        test.put("null", null);
-        test.put("createDate", new Date(0));
-        List<Object> list = new ArrayList<>();
-        list.add("awesome");
-        list.add(5.05);
-        list.add(1986);
-        list.add(true);
-        list.add(null);
-        list.add(new Date());
-        test.put("BSON", list);
-
-//        FileOutputStream out = new FileOutputStream("out.bin");
-//        out.write(encode(test).getBytes());
-//        out.close();
-        System.out.println(decode(encode(test)));
-
-//        Map<String, Object> test2 = new HashMap<>();
-//        List list = new ArrayList();
-//        list.add("awesome");
-//        list.add(5.05);
-//        list.add(1986);
-//        test2.put("BSON", list);
-//        decode(encode(test2));
-//
-////        FileOutputStream out2 = new FileOutputStream("out2.bin");
-////        out2.write(encode(test2).getBytes());
-////        out2.close();
     }
 }
