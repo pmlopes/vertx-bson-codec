@@ -1,0 +1,5 @@
+{
+  "main": "App",
+  "includes": "bson.vertx.eventbus-v1.0",
+  "worker": false
+}
