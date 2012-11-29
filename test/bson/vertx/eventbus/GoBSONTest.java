@@ -1,5 +1,7 @@
 package bson.vertx.eventbus;
 
+import bson.vertx.MaxKey;
+import bson.vertx.MinKey;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -168,35 +170,105 @@ public class GoBSONTest {
         assertArrayEquals(expected, buffer.getBytes());
     }
 
-//    {bson.M{"_": []interface{}{true, false}},
-//        "\x04_\x00\r\x00\x00\x00\x080\x00\x01\x081\x00\x00\x00"},
-//    {bson.M{"_": []byte("yo")},
-//        "\x05_\x00\x02\x00\x00\x00\x00yo"},
-//    {bson.M{"_": bson.Binary{0x02, []byte("old")}},
-//        "\x05_\x00\x07\x00\x00\x00\x02\x03\x00\x00\x00old"},
-//    {bson.M{"_": bson.Binary{0x80, []byte("udef")}},
-//        "\x05_\x00\x04\x00\x00\x00\x80udef"},
-//    {bson.M{"_": bson.Undefined}, // Obsolete, but still seen in the wild.
-//        "\x06_\x00"},
-//    {bson.M{"_": bson.ObjectId("0123456789ab")},
-//        "\x07_\x000123456789ab"},
-//    {bson.M{"_": bson.JS{"code", nil}},
-//        "\x0D_\x00\x05\x00\x00\x00code\x00"},
-//    {bson.M{"_": bson.Symbol("sym")},
-//        "\x0E_\x00\x04\x00\x00\x00sym\x00"},
-//    {bson.M{"_": bson.JS{"code", bson.M{"": nil}}},
-//        "\x0F_\x00\x14\x00\x00\x00\x05\x00\x00\x00code\x00" +
-//                "\x07\x00\x00\x00\x0A\x00\x00"},
-//    {bson.M{"_": 258},
-//        "\x10_\x00\x02\x01\x00\x00"},
-//    {bson.M{"_": bson.MongoTimestamp(258)},
-//        "\x11_\x00\x02\x01\x00\x00\x00\x00\x00\x00"},
-//    {bson.M{"_": int64(258)},
-//        "\x12_\x00\x02\x01\x00\x00\x00\x00\x00\x00"},
-//    {bson.M{"_": int64(258 << 32)},
-//        "\x12_\x00\x00\x00\x00\x00\x02\x01\x00\x00"},
-//    {bson.M{"_": bson.MaxKey},
-//        "\x7F_\x00"},
-//    {bson.M{"_": bson.MinKey},
-//        "\xFF_\x00"},}
+    @Test
+    public void testBinary() {
+        Map<String, byte[]> json = new HashMap<>();
+        json.put("_", new byte[]{'y', 'o'});
+
+        Buffer buffer = BSONCodec.encode(json);
+        byte[] expected = new byte[]{
+                // length
+                0x0f, 0x00, 0x00, 0x00,
+                0x05, '_', 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 'y', 'o',
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, buffer.getBytes());
+    }
+
+    @Test
+    public void testInt32() {
+        Map<String, Integer> json = new HashMap<>();
+        json.put("_", 258);
+
+        Buffer buffer = BSONCodec.encode(json);
+        byte[] expected = new byte[]{
+                // length
+                0x0c, 0x00, 0x00, 0x00,
+                0x10, '_', 0x00, 0x02, 0x01, 0x00, 0x00,
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, buffer.getBytes());
+    }
+
+    @Test
+    public void testInt64() {
+        Map<String, Long> json = new HashMap<>();
+        json.put("_", 258l);
+
+        Buffer buffer = BSONCodec.encode(json);
+        byte[] expected = new byte[]{
+                // length
+                0x10, 0x00, 0x00, 0x00,
+                0x12, '_', 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, buffer.getBytes());
+    }
+
+    @Test
+    public void testInt64_2() {
+        Map<String, Long> json = new HashMap<>();
+        json.put("_", 258l << 32);
+
+        Buffer buffer = BSONCodec.encode(json);
+        byte[] expected = new byte[]{
+                // length
+                0x10, 0x00, 0x00, 0x00,
+                0x12, '_', 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x00,
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, buffer.getBytes());
+    }
+
+    @Test
+    public void testMinKey() {
+        Map<String, MinKey> json = new HashMap<>();
+        json.put("_", new MinKey());
+
+        Buffer buffer = BSONCodec.encode(json);
+        byte[] expected = new byte[]{
+                // length
+                0x08, 0x00, 0x00, 0x00,
+                (byte) 0xff, '_', 0x00,
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, buffer.getBytes());
+    }
+
+    @Test
+    public void testMaxKey() {
+        Map<String, MaxKey> json = new HashMap<>();
+        json.put("_", new MaxKey());
+
+        Buffer buffer = BSONCodec.encode(json);
+        byte[] expected = new byte[]{
+                // length
+                0x08, 0x00, 0x00, 0x00,
+                0x7f, '_', 0x00,
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, buffer.getBytes());
+    }
 }
