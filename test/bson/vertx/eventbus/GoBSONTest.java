@@ -3,6 +3,7 @@ package bson.vertx.eventbus;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -149,6 +150,24 @@ public class GoBSONTest {
 
         assertArrayEquals(expected, buffer.getBytes());
     }
+
+    @Test
+    public void testDate() {
+        Map<String, Date> json = new HashMap<>();
+        json.put("_", new Date(258));
+
+        Buffer buffer = BSONCodec.encode(json);
+        byte[] expected = new byte[]{
+                // length
+                0x10, 0x00, 0x00, 0x00,
+                0x09, '_', 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, buffer.getBytes());
+    }
+
 //    {bson.M{"_": []interface{}{true, false}},
 //        "\x04_\x00\r\x00\x00\x00\x080\x00\x01\x081\x00\x00\x00"},
 //    {bson.M{"_": []byte("yo")},
@@ -161,8 +180,6 @@ public class GoBSONTest {
 //        "\x06_\x00"},
 //    {bson.M{"_": bson.ObjectId("0123456789ab")},
 //        "\x07_\x000123456789ab"},
-//    {bson.M{"_": bson.Timestamp(258e6)}, // Note the NS <=> MS conversion.
-//        "\x09_\x00\x02\x01\x00\x00\x00\x00\x00\x00"},
 //    {bson.M{"_": bson.JS{"code", nil}},
 //        "\x0D_\x00\x05\x00\x00\x00code\x00"},
 //    {bson.M{"_": bson.Symbol("sym")},
