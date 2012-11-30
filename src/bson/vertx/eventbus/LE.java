@@ -105,6 +105,10 @@ final class LE {
         return buffer.getByte(pos);
     }
 
+    public static byte[] getBytes(Buffer buffer, int pos, int length) {
+        return buffer.getBytes(pos, pos + length);
+    }
+
     public static int getInt(Buffer buffer, int pos) {
         return Integer.reverseBytes(buffer.getInt(pos));
     }

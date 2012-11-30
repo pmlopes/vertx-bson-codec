@@ -1,7 +1,6 @@
 package bson.vertx.eventbus;
 
-import bson.vertx.MaxKey;
-import bson.vertx.MinKey;
+import bson.vertx.Key;
 import bson.vertx.ObjectId;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -134,10 +133,14 @@ final class BSONCodec {
         else if (value instanceof Long) {
             encodeType(buffer, INT64, key);
             appendLong(buffer, (Long) value);
-        } else if (value instanceof MinKey) {
-            encodeType(buffer, MINKEY, key);
-        } else if (value instanceof MaxKey) {
-            encodeType(buffer, MAXKEY, key);
+        } else if (value instanceof Key) {
+            if (value == Key.MIN) {
+                encodeType(buffer, MINKEY, key);
+            } else if (value == Key.MAX) {
+                encodeType(buffer, MAXKEY, key);
+            } else {
+                throw new RuntimeException("Dont know how to encode: " + value);
+            }
         } else {
             throw new RuntimeException("Dont know how to encode: " + value);
         }
@@ -219,6 +222,24 @@ final class BSONCodec {
                     pos += arrLen;
                     break;
                 case BINARY:
+                    int binLen = getInt(buffer, pos);
+                    pos += 4;
+                    byte bintype = getByte(buffer, pos);
+                    pos++;
+                    switch (bintype) {
+                        case BINARY_BINARY:
+                            document.put(key, getBytes(buffer, pos, binLen));
+                            pos += binLen;
+                            break;
+                        case BINARY_FUNCTION:
+                        case BINARY_BINARY_OLD:
+                        case BINARY_UUID_OLD:
+                        case BINARY_UUID:
+                        case BINARY_MD5:
+                        case BINARY_USERDEFINED:
+                            throw new RuntimeException("Not Implemented");
+                    }
+                    break;
                 case UNDEFINED:
                 case OBJECT_ID:
                     throw new RuntimeException("Not Implemented");
@@ -234,6 +255,33 @@ final class BSONCodec {
                     document.put(key, null);
                     break;
                 case REGEX:
+                    String regex = getCString(buffer, pos);
+                    pos += regex.length() + 1;
+                    String options = getCString(buffer, pos);
+                    pos += options.length() + 1;
+
+                    int flags = 0;
+                    for (int i = 0; i < options.length(); i++) {
+                        if (options.charAt(i) == 'i') {
+                            flags |= Pattern.CASE_INSENSITIVE;
+                            continue;
+                        }
+                        if (options.charAt(i) == 'm') {
+                            flags |= Pattern.MULTILINE;
+                            continue;
+                        }
+                        if (options.charAt(i) == 's') {
+                            flags |= Pattern.DOTALL;
+                            continue;
+                        }
+                        if (options.charAt(i) == 'u') {
+                            flags |= Pattern.UNICODE_CASE;
+                            continue;
+                        }
+                        // TODO: convert flags to BSON flags x,l
+                    }
+                    document.put(key, Pattern.compile(regex, flags));
+                    break;
                 case DBPOINTER:
                 case JSCODE:
                 case SYMBOL:
@@ -250,10 +298,10 @@ final class BSONCodec {
                     pos += 8;
                     break;
                 case MINKEY:
-                    document.put(key, new MinKey());
+                    document.put(key, Key.MIN);
                     break;
                 case MAXKEY:
-                    document.put(key, new MaxKey());
+                    document.put(key, Key.MAX);
                     break;
             }
         }
@@ -297,6 +345,24 @@ final class BSONCodec {
                     pos += arrLen;
                     break;
                 case BINARY:
+                    int binLen = getInt(buffer, pos);
+                    pos += 4;
+                    byte bintype = getByte(buffer, pos);
+                    pos++;
+                    switch (bintype) {
+                        case BINARY_BINARY:
+                            list.add(Integer.parseInt(key), getBytes(buffer, pos, binLen));
+                            pos += binLen;
+                            break;
+                        case BINARY_FUNCTION:
+                        case BINARY_BINARY_OLD:
+                        case BINARY_UUID_OLD:
+                        case BINARY_UUID:
+                        case BINARY_MD5:
+                        case BINARY_USERDEFINED:
+                            throw new RuntimeException("Not Implemented");
+                    }
+                    break;
                 case UNDEFINED:
                 case OBJECT_ID:
                     throw new RuntimeException("Not Implemented");
@@ -312,6 +378,33 @@ final class BSONCodec {
                     list.add(Integer.parseInt(key), null);
                     break;
                 case REGEX:
+                    String regex = getCString(buffer, pos);
+                    pos += regex.length() + 1;
+                    String options = getCString(buffer, pos);
+                    pos += options.length() + 1;
+
+                    int flags = 0;
+                    for (int i = 0; i < options.length(); i++) {
+                        if (options.charAt(i) == 'i') {
+                            flags |= Pattern.CASE_INSENSITIVE;
+                            continue;
+                        }
+                        if (options.charAt(i) == 'm') {
+                            flags |= Pattern.MULTILINE;
+                            continue;
+                        }
+                        if (options.charAt(i) == 's') {
+                            flags |= Pattern.DOTALL;
+                            continue;
+                        }
+                        if (options.charAt(i) == 'u') {
+                            flags |= Pattern.UNICODE_CASE;
+                            continue;
+                        }
+                        // TODO: convert flags to BSON flags x,l
+                    }
+                    list.add(Integer.parseInt(key), Pattern.compile(regex, flags));
+                    break;
                 case DBPOINTER:
                 case JSCODE:
                 case SYMBOL:
@@ -328,10 +421,10 @@ final class BSONCodec {
                     pos += 8;
                     break;
                 case MINKEY:
-                    list.add(Integer.parseInt(key), new MinKey());
+                    list.add(Integer.parseInt(key), Key.MIN);
                     break;
                 case MAXKEY:
-                    list.add(Integer.parseInt(key), new MaxKey());
+                    list.add(Integer.parseInt(key), Key.MAX);
                     break;
             }
         }

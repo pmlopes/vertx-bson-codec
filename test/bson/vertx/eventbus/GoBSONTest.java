@@ -1,7 +1,6 @@
 package bson.vertx.eventbus;
 
-import bson.vertx.MaxKey;
-import bson.vertx.MinKey;
+import bson.vertx.Key;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -44,7 +43,7 @@ public class GoBSONTest {
         json.put("_", 5.05);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x10, 0x0, 0x0, 0x0,
                 0x01, '_', 0x00, '3', '3', '3', '3', '3', '3', 0x14, '@',
@@ -64,7 +63,7 @@ public class GoBSONTest {
         json.put("_", "yo");
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x0f, 0x00, 0x00, 0x00,
                 0x02, '_', 0x00, 0x03, 0x00, 0x00, 0x00, 'y', 'o', 0x00,
@@ -85,7 +84,7 @@ public class GoBSONTest {
         json.put("_", subjson);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x11, 0x00, 0x00, 0x00,
                 0x03, '_', 0x00, 0x09, 0x00, 0x00, 0x00, 0x08, 'a', 0x00, 0x01, 0x00,
@@ -105,7 +104,7 @@ public class GoBSONTest {
         json.put("_", true);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x09, 0x00, 0x00, 0x00,
                 0x08, '_', 0x00, 0x01,
@@ -125,7 +124,7 @@ public class GoBSONTest {
         json.put("_", false);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x09, 0x00, 0x00, 0x00,
                 0x08, '_', 0x00, 0x00,
@@ -145,7 +144,7 @@ public class GoBSONTest {
         json.put("_", null);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x08, 0x00, 0x00, 0x00,
                 0x0a, '_', 0x00,
@@ -165,7 +164,7 @@ public class GoBSONTest {
         json.put("_", Pattern.compile("ab"));
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x0c, 0x00, 0x00, 0x00,
                 0x0b, '_', 0x00, 'a', 'b', 0x00, 0x00,
@@ -176,7 +175,14 @@ public class GoBSONTest {
         assertArrayEquals(expected, buffer.getBytes());
         // reverse
         Map document = BSONCodec.decode(new Buffer(expected));
-        assertEquals(json, document);
+        // compare if the keys are the same
+        assertEquals(json.keySet(), document.keySet());
+        // now compare the regex
+        Pattern jsonp = json.get("_");
+        Pattern docp = (Pattern) document.get("_");
+
+        assertEquals(jsonp.pattern(), docp.pattern());
+        assertEquals(jsonp.flags(), docp.flags());
     }
 
     @Test
@@ -185,7 +191,7 @@ public class GoBSONTest {
         json.put("_", new Date(258));
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x10, 0x00, 0x00, 0x00,
                 0x09, '_', 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -205,7 +211,7 @@ public class GoBSONTest {
         json.put("_", new byte[]{'y', 'o'});
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x0f, 0x00, 0x00, 0x00,
                 0x05, '_', 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 'y', 'o',
@@ -216,7 +222,14 @@ public class GoBSONTest {
         assertArrayEquals(expected, buffer.getBytes());
         // reverse
         Map document = BSONCodec.decode(new Buffer(expected));
-        assertEquals(json, document);
+
+        // compare if the keys are the same
+        assertEquals(json.keySet(), document.keySet());
+        // now compare the regex
+        byte[] jsonBytes = json.get("_");
+        byte[] docBytes = (byte[]) document.get("_");
+
+        assertArrayEquals(jsonBytes, docBytes);
     }
 
     @Test
@@ -225,7 +238,7 @@ public class GoBSONTest {
         json.put("_", 258);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x0c, 0x00, 0x00, 0x00,
                 0x10, '_', 0x00, 0x02, 0x01, 0x00, 0x00,
@@ -245,7 +258,7 @@ public class GoBSONTest {
         json.put("_", 258l);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x10, 0x00, 0x00, 0x00,
                 0x12, '_', 0x00, 0x02, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -265,7 +278,7 @@ public class GoBSONTest {
         json.put("_", 258l << 32);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x10, 0x00, 0x00, 0x00,
                 0x12, '_', 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x01, 0x00, 0x00,
@@ -281,11 +294,11 @@ public class GoBSONTest {
 
     @Test
     public void testMinKey() {
-        Map<String, MinKey> json = new HashMap<>();
-        json.put("_", new MinKey());
+        Map<String, Key> json = new HashMap<>();
+        json.put("_", Key.MIN);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x08, 0x00, 0x00, 0x00,
                 (byte) 0xff, '_', 0x00,
@@ -301,11 +314,11 @@ public class GoBSONTest {
 
     @Test
     public void testMaxKey() {
-        Map<String, MaxKey> json = new HashMap<>();
-        json.put("_", new MaxKey());
+        Map<String, Key> json = new HashMap<>();
+        json.put("_", Key.MAX);
 
         Buffer buffer = BSONCodec.encode(json);
-        byte[] expected = new byte[]{
+        byte[] expected = new byte[] {
                 // length
                 0x08, 0x00, 0x00, 0x00,
                 0x7f, '_', 0x00,
