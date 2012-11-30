@@ -41,7 +41,7 @@ final class LE {
     }
 
     public static void appendCString(Buffer buffer, String value) {
-        byte[] bytes = value.getBytes(Charset.forName("US-ASCII"));
+        byte[] bytes = value.getBytes(Charset.forName("UTF-8"));
         // validate if it is a real C string
         for (byte aByte : bytes) {
             if (aByte == '\0') {
@@ -130,7 +130,7 @@ final class LE {
         while (buffer.getByte(end) != (byte) 0x00) {
             end++;
         }
-        return buffer.getString(pos, end, "US-ASCII");
+        return buffer.getString(pos, end, "UTF-8");
     }
 
     public static String getString(Buffer buffer, int pos, int length) {
