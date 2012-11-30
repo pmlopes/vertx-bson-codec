@@ -20,9 +20,9 @@ Right now it encodes/decodes:
 * byte[] (binary)
 * java.lang.Boolean
 * null
+* java.util.UUID
 
 Planned but not implemented yet:
-* java.util.UUID
 * and the remaining types if i find a proper mapping to native jdk types.
 
 I also put together 2 samples (one in java and another in groovy)

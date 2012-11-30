@@ -69,8 +69,8 @@ final class BSONCodec {
             appendByte(buffer, BINARY_UUID);
             // append data
             UUID uuid = (UUID) value;
-            appendLong(buffer, uuid.getLeastSignificantBits());
-            appendLong(buffer, uuid.getMostSignificantBits());
+            buffer.appendLong(uuid.getMostSignificantBits());
+            buffer.appendLong(uuid.getLeastSignificantBits());
         } else if (value instanceof byte[]) {
             encodeType(buffer, BINARY, key);
             // append length
@@ -234,7 +234,14 @@ final class BSONCodec {
                         case BINARY_FUNCTION:
                         case BINARY_BINARY_OLD:
                         case BINARY_UUID_OLD:
+                            throw new RuntimeException("Not Implemented");
                         case BINARY_UUID:
+                            long mostSingnificantBits = buffer.getLong(pos);
+                            pos += 8;
+                            long leastSingnificantBits = buffer.getLong(pos);
+                            pos += 8;
+                            document.put(key, new UUID(mostSingnificantBits, leastSingnificantBits));
+                            break;
                         case BINARY_MD5:
                         case BINARY_USERDEFINED:
                             throw new RuntimeException("Not Implemented");
@@ -357,7 +364,14 @@ final class BSONCodec {
                         case BINARY_FUNCTION:
                         case BINARY_BINARY_OLD:
                         case BINARY_UUID_OLD:
+                            throw new RuntimeException("Not Implemented");
                         case BINARY_UUID:
+                            long mostSingnificantBits = buffer.getLong(pos);
+                            pos += 8;
+                            long leastSingnificantBits = buffer.getLong(pos);
+                            pos += 8;
+                            list.add(Integer.parseInt(key), new UUID(mostSingnificantBits, leastSingnificantBits));
+                            break;
                         case BINARY_MD5:
                         case BINARY_USERDEFINED:
                             throw new RuntimeException("Not Implemented");
