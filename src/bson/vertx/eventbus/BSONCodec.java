@@ -236,11 +236,11 @@ final class BSONCodec {
                         case BINARY_UUID_OLD:
                             throw new RuntimeException("Not Implemented");
                         case BINARY_UUID:
-                            long mostSingnificantBits = buffer.getLong(pos);
+                            long mostSignificantBits = buffer.getLong(pos);
                             pos += 8;
-                            long leastSingnificantBits = buffer.getLong(pos);
+                            long leastSignificantBits = buffer.getLong(pos);
                             pos += 8;
-                            document.put(key, new UUID(mostSingnificantBits, leastSingnificantBits));
+                            document.put(key, new UUID(mostSignificantBits, leastSignificantBits));
                             break;
                         case BINARY_MD5:
                         case BINARY_USERDEFINED:
