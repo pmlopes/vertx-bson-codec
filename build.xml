@@ -43,6 +43,7 @@
     <target name="test" depends="compile">
         <javac srcdir="${test}" destdir="${build}/test" includeantruntime="false">
             <classpath>
+                <pathelement path="${build}/java"/>
                 <fileset dir="lib">
                     <include name="*.jar"/>
                 </fileset>
