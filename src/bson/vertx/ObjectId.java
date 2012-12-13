@@ -2,9 +2,7 @@ package bson.vertx;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 public final class ObjectId {
@@ -19,26 +17,31 @@ public final class ObjectId {
         String hostname;
         try {
             hostname = InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
+        } catch (Exception e) {
             hostname = "localhost";
         }
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            // 3 bytes MACHINE
             byte[] machine = md.digest(hostname.getBytes());
             ObjectId.MACHINE[0] = machine[0];
             ObjectId.MACHINE[1] = machine[1];
             ObjectId.MACHINE[2] = machine[2];
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             ObjectId.MACHINE[0] = (byte) (Math.random() * 255);
             ObjectId.MACHINE[1] = (byte) (Math.random() * 255);
             ObjectId.MACHINE[2] = (byte) (Math.random() * 255);
         }
-        // PID
-        String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
-        int p = nameOfRunningVM.indexOf('@');
-        String pid = nameOfRunningVM.substring(0, p);
-        PID = Integer.parseInt(pid);
+
+        int pid;
+        try {
+            String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
+            int p = nameOfRunningVM.indexOf('@');
+            pid = Integer.parseInt(nameOfRunningVM.substring(0, p));
+        } catch (Exception e) {
+            pid = (int) (Math.random() * 0x00ffffff);
+        }
+
+        PID = pid;
     }
 
     private static byte charToInt(char ch) {
