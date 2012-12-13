@@ -85,8 +85,7 @@ final class BSONCodec {
 //            }
         else if (value instanceof ObjectId) {
             encodeType(buffer, OBJECT_ID, key);
-            // TODO: get bytes from ObjectId
-            appendBytes(buffer, new byte[12]);
+            appendBytes(buffer, ((ObjectId) value).getBytes());
         } else if (value instanceof Boolean) {
             encodeType(buffer, BOOLEAN, key);
             appendBoolean(buffer, (Boolean) value);
@@ -248,8 +247,11 @@ final class BSONCodec {
                     }
                     break;
                 case UNDEFINED:
-                case OBJECT_ID:
                     throw new RuntimeException("Not Implemented");
+                case OBJECT_ID:
+                    document.put(key, new ObjectId(getBytes(buffer, pos, 12)));
+                    pos += 12;
+                    break;
                 case BOOLEAN:
                     document.put(key, getBoolean(buffer, pos));
                     pos++;
@@ -378,8 +380,11 @@ final class BSONCodec {
                     }
                     break;
                 case UNDEFINED:
-                case OBJECT_ID:
                     throw new RuntimeException("Not Implemented");
+                case OBJECT_ID:
+                    list.add(Integer.parseInt(key), new ObjectId(getBytes(buffer, pos, 12)));
+                    pos += 12;
+                    break;
                 case BOOLEAN:
                     list.add(Integer.parseInt(key), getBoolean(buffer, pos));
                     pos++;

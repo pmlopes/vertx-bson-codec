@@ -13,14 +13,7 @@ public final class ObjectId {
     private static final int PID;
     private static int counter = 0;
 
-    // 4 bytes
-    private final int timestamp;
-    // 3 bytes
-    private final byte[] machine = new byte[3];
-    // 2 bytes
-    private final int pid;
-    // 3 bytes
-    private final int increment;
+    private final byte[] oid = new byte[12];
 
     static {
         String hostname;
@@ -37,23 +30,15 @@ public final class ObjectId {
             ObjectId.MACHINE[1] = machine[1];
             ObjectId.MACHINE[2] = machine[2];
         } catch (NoSuchAlgorithmException e) {
-            ObjectId.MACHINE[0] = '\0';
-            ObjectId.MACHINE[1] = '\0';
-            ObjectId.MACHINE[2] = '\0';
+            ObjectId.MACHINE[0] = (byte) (Math.random() * 255);
+            ObjectId.MACHINE[1] = (byte) (Math.random() * 255);
+            ObjectId.MACHINE[2] = (byte) (Math.random() * 255);
         }
         // PID
         String nameOfRunningVM = ManagementFactory.getRuntimeMXBean().getName();
         int p = nameOfRunningVM.indexOf('@');
         String pid = nameOfRunningVM.substring(0, p);
         PID = Integer.parseInt(pid);
-    }
-
-    public ObjectId() throws Exception {
-        // 4 bytes timestamps
-        timestamp = (int) (System.currentTimeMillis() / 1000);
-        System.arraycopy(MACHINE, 0, machine, 0, 3);
-        pid = PID;
-        increment = counter++;
     }
 
     private static byte charToInt(char ch) {
@@ -100,53 +85,141 @@ public final class ObjectId {
         throw new RuntimeException("Invalid Hex character: " + ch);
     }
 
+    private static char intToChar(int ch) {
+        switch (ch) {
+            case 0x00:
+                return '0';
+            case 0x01:
+                return '1';
+            case 0x02:
+                return '2';
+            case 0x03:
+                return '3';
+            case 0x04:
+                return '4';
+            case 0x05:
+                return '5';
+            case 0x06:
+                return '6';
+            case 0x07:
+                return '7';
+            case 0x08:
+                return '8';
+            case 0x09:
+                return '9';
+            case 0x0a:
+                return 'a';
+            case 0x0b:
+                return 'b';
+            case 0x0c:
+                return 'c';
+            case 0x0d:
+                return 'd';
+            case 0x0e:
+                return 'e';
+            case 0x0f:
+                return 'f';
+        }
+        throw new RuntimeException("Invalid Hex character: " + ch);
+    }
+
     private static byte hexToByte(char ch0, char ch1) {
-        return (byte) ((charToInt(ch0) & 0xFF) << 4 | (charToInt(ch1) & 0xFF));
+        return (byte) ((charToInt(ch0) & 0xff) << 4 | (charToInt(ch1) & 0xff));
+    }
+
+    public ObjectId() throws Exception {
+        this((int) (System.currentTimeMillis() / 1000), MACHINE, PID, counter++);
+    }
+
+    public ObjectId(int timestamp, byte[] machine, int pid, int increment) {
+        oid[0] = (byte) ((timestamp >> 24) & 0xff);
+        oid[1] = (byte) ((timestamp >> 16) & 0xff);
+        oid[2] = (byte) ((timestamp >> 8) & 0xff);
+        oid[3] = (byte) (timestamp & 0xff);
+        oid[4] = machine[0];
+        oid[5] = machine[1];
+        oid[6] = machine[2];
+        oid[7] = (byte) ((pid >> 8) & 0xff);
+        oid[8] = (byte) (pid & 0xff);
+        oid[9] = (byte) ((increment >> 16) & 0xff);
+        oid[10] = (byte) ((increment >> 8) & 0xff);
+        oid[11] = (byte) (increment & 0xff);
     }
 
     public ObjectId(String hex) {
-        timestamp = hexToByte(hex.charAt(0), hex.charAt(1)) << 24 | (hexToByte(hex.charAt(2), hex.charAt(3)) & 0xFF) << 16 | (hexToByte(hex.charAt(4), hex.charAt(5)) & 0xFF) << 8 | (hexToByte(hex.charAt(6), hex.charAt(7)) & 0xFF);
-        machine[0] = hexToByte(hex.charAt(8), hex.charAt(9));
-        machine[1] = hexToByte(hex.charAt(10), hex.charAt(11));
-        machine[2] = hexToByte(hex.charAt(12), hex.charAt(13));
-        pid = (hexToByte(hex.charAt(14), hex.charAt(15)) & 0xFF) << 8 | (hexToByte(hex.charAt(16), hex.charAt(17)) & 0xFF);
-        increment = (hexToByte(hex.charAt(18), hex.charAt(19)) & 0xFF) << 16 | (hexToByte(hex.charAt(20), hex.charAt(21)) & 0xFF) << 8 | (hexToByte(hex.charAt(22), hex.charAt(23)) & 0xFF);
+        for (int i = 0; i < 12; i++) {
+            oid[i] = hexToByte(hex.charAt(i * 2), hex.charAt(i * 2 + 1));
+        }
     }
 
     public ObjectId(byte[] hex) {
-        timestamp = hex[0] << 24 | (hex[1] & 0xFF) << 16 | (hex[2] & 0xFF) << 8 | (hex[3] & 0xFF);
-        System.arraycopy(hex, 4, machine, 0, 3);
-        pid = (hex[7] & 0xFF) << 8 | (hex[8] & 0xFF);
-        increment = (hex[9] & 0xFF) << 16 | (hex[10] & 0xFF) << 8 | (hex[11] & 0xFF);
+        System.arraycopy(hex, 0, oid, 0, 12);
     }
 
     public int getTimestamp() {
-        return timestamp;
+        return oid[0] << 24 | (oid[1] & 0xff) << 16 | (oid[2] & 0xff) << 8 | (oid[3] & 0xff);
     }
 
     public Date getDate() {
-        return new Date(timestamp * 1000l);
+        return new Date(getTimestamp() * 1000l);
     }
 
     public byte[] getMachine() {
+        byte[] machine = new byte[3];
+        System.arraycopy(oid, 4, machine, 0, 3);
         return machine;
     }
 
     public int getPid() {
-        return pid;
+        return (oid[7] & 0xff) << 8 | (oid[8] & 0xff);
     }
 
     public int getIncrement() {
-        return increment;
+        return (oid[9] & 0xff) << 16 | (oid[10] & 0xff) << 8 | (oid[11] & 0xff);
+    }
+
+    public byte[] getBytes() {
+        return oid;
     }
 
     @Override
     public int hashCode() {
-        throw new RuntimeException("Not implemented yet");
+        final int prime = 31;
+        int result = 1;
+        for (int i = 0; i < 12; i++) {
+            result = prime * result + oid[i];
+        }
+        return result;
     }
 
     @Override
-    public boolean equals(Object other) {
-        throw new RuntimeException("Not implemented yet");
+    public boolean equals(Object obj) {
+        if (obj == null)
+            return false;
+        if (obj == this)
+            return true;
+        if (obj.getClass() != getClass())
+            return false;
+
+        ObjectId rhs = (ObjectId) obj;
+
+        for (int i = 0; i < 12; i++) {
+            if (oid[i] != rhs.oid[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 12; i++) {
+            sb.append(intToChar((oid[i] >> 4) & 0x0f));
+            sb.append(intToChar(oid[i] & 0x0f));
+        }
+
+        return sb.toString();
     }
 }

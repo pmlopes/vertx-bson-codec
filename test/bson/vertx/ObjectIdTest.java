@@ -2,8 +2,7 @@ package bson.vertx;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 public class ObjectIdTest {
 
@@ -60,5 +59,23 @@ public class ObjectIdTest {
         assertArrayEquals(new byte[] {(byte) 0xaa, (byte) 0xbb, (byte) 0xcc}, oid.getMachine());
         assertEquals(0xddee, oid.getPid());
         assertEquals(1, oid.getIncrement());
+    }
+
+    @Test
+    public void testObjectIdToString() throws Exception {
+        ObjectId oid = new ObjectId("4d88e15b60f486e428412dc9");
+        assertEquals("4d88e15b60f486e428412dc9", oid.toString());
+
+        oid = new ObjectId("00000000aabbccddee000001");
+        assertEquals("00000000aabbccddee000001", oid.toString());
+    }
+
+    @Test
+    public void testObjectIdEquality() throws Exception {
+        ObjectId oid = new ObjectId("4d88e15b60f486e428412dc9");
+        ObjectId oid2 = new ObjectId("4d88e15b60f486e428412dc9");
+
+        assertTrue(oid.equals(oid2));
+        assertFalse(oid == oid2);
     }
 }
