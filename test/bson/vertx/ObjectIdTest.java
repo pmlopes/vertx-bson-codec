@@ -2,6 +2,9 @@ package bson.vertx;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 public class ObjectIdTest {
 
     @Test
@@ -11,16 +14,51 @@ public class ObjectIdTest {
 
     @Test
     public void testObjectCreateFromHex() throws Exception {
-        new ObjectId("4d88e15b60f486e428412dc9");
-//        1300816219,
-//        []byte{0x60, 0xf4, 0x86},
-//        0xe428,
-//        427156,
+        ObjectId oid = new ObjectId("4d88e15b60f486e428412dc9");
 
-        new ObjectId("00000000aabbccddee000001");
-//        0,
-//        []byte{0xaa, 0xbb, 0xcc},
-//        0xddee,
-//        1,
+        assertEquals(1300816219, oid.getTimestamp());
+        assertArrayEquals(new byte[] {0x60, (byte) 0xf4, (byte) 0x86}, oid.getMachine());
+        assertEquals(0xe428, oid.getPid());
+        assertEquals(4271561, oid.getIncrement());
+
+        oid = new ObjectId("00000000aabbccddee000001");
+
+        assertEquals(0, oid.getTimestamp());
+        assertArrayEquals(new byte[] {(byte) 0xaa, (byte) 0xbb, (byte) 0xcc}, oid.getMachine());
+        assertEquals(0xddee, oid.getPid());
+        assertEquals(1, oid.getIncrement());
+    }
+
+    @Test
+    public void testObjectCreateFromBin() throws Exception {
+        ObjectId oid = new ObjectId(new byte[] {
+                // timestamp
+                0x4d, (byte) 0x88, (byte) 0xe1, 0x5b,
+                // machine
+                0x60, (byte) 0xf4, (byte) 0x86,
+                // pid
+                (byte) 0xe4, 0x28,
+                // counter
+                0x41, 0x2d, (byte) 0xc9});
+
+        assertEquals(1300816219, oid.getTimestamp());
+        assertArrayEquals(new byte[] {0x60, (byte) 0xf4, (byte) 0x86}, oid.getMachine());
+        assertEquals(0xe428, oid.getPid());
+        assertEquals(4271561, oid.getIncrement());
+
+        oid = new ObjectId(new byte[] {
+                // timestamp
+                0x00, 0x00, 0x00, 0x00,
+                // machine
+                (byte) 0xaa, (byte) 0xbb, (byte) 0xcc,
+                // pid
+                (byte) 0xdd, (byte) 0xee,
+                // counter
+                0x00, 0x00, 0x01});
+
+        assertEquals(0, oid.getTimestamp());
+        assertArrayEquals(new byte[] {(byte) 0xaa, (byte) 0xbb, (byte) 0xcc}, oid.getMachine());
+        assertEquals(0xddee, oid.getPid());
+        assertEquals(1, oid.getIncrement());
     }
 }
