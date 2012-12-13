@@ -40,6 +40,7 @@ At this moment, BSON Event Bus is capable of handling the following types:
 * java.lang.Boolean
 * null
 * java.util.UUID
+* ObjectId
 
 Not implemented yet
 -------------------
@@ -51,7 +52,6 @@ The following types have not been implemented yet, however they are defined in t
 * Binary MD5 (is there a candidate Class in the JDK that i can map?)
 * Binary User Defined
 * Undefined (deprecated)
-* ObjectId
 * DBPointer (deprecated)
 * JS Code
 * JS Code with context
