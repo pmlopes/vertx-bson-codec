@@ -24,41 +24,37 @@ Implementation details
 The module has no external dependencies, I've decided to implement the bson codec myself to optimize the usage of vert.x
 buffers, and for that reason it is quite basic for the moment.
 
-Supported Data Types
---------------------
-At this moment, BSON Event Bus is capable of handling the following types:
+Type mapping implementation status
+----------------------------------
 
-* java.util.Map
-* java.util.List
-* java.lang.String
-* java.lang.Integer
-* java.lang.Long
-* java.lang.Double
-* java.util.Date
-* java.util.regex.Pattern
-* byte[] (binary)
-* java.lang.Boolean
-* null
-* java.util.UUID
-* ObjectId
-
-Not implemented yet
--------------------
-The following types have not been implemented yet, however they are defined in the bson spec:
-
-* Binary Function
-* Binary OLD (deprecated)
-* Binary UUID OLD (deprecated)
-* Binary MD5 (is there a candidate Class in the JDK that i can map?)
-* Binary User Defined
-* Undefined (deprecated)
-* DBPointer (deprecated)
-* JS Code
-* JS Code with context
-* Symbol
-* Mongo Timestamp
-* MinKey (what are these types?)
-* MaxKey (what are these types?)
+| BSON | Java | Implemented | Comments |
+|:-----|:-----|:-----------:|:---------|
+| Floating Point | Double | ✔ |  |
+| UTF-8 String | String | ✔ |  |
+| Embedded Document | java.util.Map | ✔ |  |
+| Array | java.util.List | ✔ |  |
+| Binary::Generic | byte[] | ✔ |  |
+| Binary::Function | | |  |
+| Binary::Binary (OLD) | | | Deprecated |
+| Binary::UUID (OLD) | | | Deprecated |
+| Binary::UUID | java.util.UUID | ✔ |  |
+| Binary::MD5 | | |  |
+| Binary::User Defined | | |  |
+| Undefined | | | Deprecated |
+| ObjectId | bson.vertx.ObjectId | ✔ |  |
+| Boolean | Boolean | ✔ |  |
+| UTC Datetime | java.util.Date | ✔ |  |
+| Null | null | ✔ |  |
+| Regular Expression | java.util.regex.Pattern | ✔ |  |
+| DBPointer | | | Deprecated |
+| JavaScript Code | | |  |
+| Symbol | | | Deprecated |
+| JavaScript Code w/scope | | | |
+| 32bit Integer | Integer | ✔ | |
+| Timestamp | | |  |
+| 64bit Integer | Long | ✔ |  |
+| MinKey | | |  |
+| MaxKey | | |  |
 
 Quickstart
 ----------

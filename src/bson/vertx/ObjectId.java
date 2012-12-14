@@ -44,7 +44,7 @@ public final class ObjectId {
         PID = pid;
     }
 
-    private static byte charToInt(char ch) {
+    private static byte charToByte(char ch) {
         switch (ch) {
             case '0':
                 return 0x00;
@@ -127,23 +127,23 @@ public final class ObjectId {
     }
 
     private static byte hexToByte(char ch0, char ch1) {
-        return (byte) ((charToInt(ch0) & 0xff) << 4 | (charToInt(ch1) & 0xff));
+        return (byte) ((charToByte(ch0) & 0xff) << 4 | (charToByte(ch1) & 0xff));
     }
 
-    public ObjectId() throws Exception {
-        this((int) (System.currentTimeMillis() / 1000), MACHINE, PID, counter++);
+    public ObjectId() {
+        this((int) (System.currentTimeMillis() / 1000), counter++);
     }
 
-    public ObjectId(int timestamp, byte[] machine, int pid, int increment) {
+    private ObjectId(int timestamp, int increment) {
         oid[0] = (byte) ((timestamp >> 24) & 0xff);
         oid[1] = (byte) ((timestamp >> 16) & 0xff);
         oid[2] = (byte) ((timestamp >> 8) & 0xff);
         oid[3] = (byte) (timestamp & 0xff);
-        oid[4] = machine[0];
-        oid[5] = machine[1];
-        oid[6] = machine[2];
-        oid[7] = (byte) ((pid >> 8) & 0xff);
-        oid[8] = (byte) (pid & 0xff);
+        oid[4] = MACHINE[0];
+        oid[5] = MACHINE[1];
+        oid[6] = MACHINE[2];
+        oid[7] = (byte) ((PID >> 8) & 0xff);
+        oid[8] = (byte) (PID & 0xff);
         oid[9] = (byte) ((increment >> 16) & 0xff);
         oid[10] = (byte) ((increment >> 8) & 0xff);
         oid[11] = (byte) (increment & 0xff);
