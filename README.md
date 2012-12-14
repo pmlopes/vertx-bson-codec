@@ -53,8 +53,8 @@ Type mapping implementation status
 | 32bit Integer | Integer | ✔ | |
 | Timestamp | | |  |
 | 64bit Integer | Long | ✔ |  |
-| MinKey | | |  |
-| MaxKey | | |  |
+| MinKey | bson.vertx.Key.MIN | ✔ |  |
+| MaxKey | bson.vertx.Key.MAX | ✔ |  |
 
 Quickstart
 ----------
