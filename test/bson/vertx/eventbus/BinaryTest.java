@@ -1,5 +1,6 @@
 package bson.vertx.eventbus;
 
+import bson.vertx.Binary;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -33,5 +34,32 @@ public class BinaryTest {
         // reverse
         Map document = BSONCodec.decode(new Buffer(expected));
         assertEquals(json, document);
+    }
+
+    @Test
+    public void testUserDefinedBinary() {
+        Map<String, Binary> json = new HashMap<>();
+        json.put("_", new Binary() {
+            public byte[] getBytes() {
+                return "udef".getBytes();
+            }
+        });
+
+        byte[] bson = BSONCodec.encode(json).getBytes();
+
+        byte[] expected = new byte[] {
+                // length
+                0x11, 0x00, 0x00, 0x00,
+                // data
+                0x05, '_', 0x00, 0x04, 0x00, 0x00, 0x00, (byte) 0x80, 'u', 'd', 'e', 'f',
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, bson);
+
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertArrayEquals(new byte[] {'u', 'd', 'e', 'f'}, ((Binary) document.get("_")).getBytes());
     }
 }

@@ -39,7 +39,7 @@ Type mapping implementation status
 | Binary::UUID (OLD) | | | Deprecated |
 | Binary::UUID | java.util.UUID | ✔ |  |
 | Binary::MD5 | | |  |
-| Binary::User Defined | | |  |
+| Binary::User Defined | bson.vertx.Binary | ✔ | This is a interface that you need to implement getBytes() : byte[] |
 | Undefined | | | Deprecated |
 | ObjectId | bson.vertx.ObjectId | ✔ |  |
 | Boolean | Boolean | ✔ |  |

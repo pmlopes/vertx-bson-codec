@@ -1,5 +1,6 @@
 package bson.vertx.eventbus;
 
+import bson.vertx.Binary;
 import bson.vertx.Key;
 import bson.vertx.ObjectId;
 import org.vertx.java.core.buffer.Buffer;
@@ -18,7 +19,9 @@ final class BSONCodec {
     private static final byte BINARY = (byte) 0x05;
     private static final byte BINARY_BINARY = (byte) 0x00;
     private static final byte BINARY_FUNCTION = (byte) 0x01;
+    @Deprecated
     private static final byte BINARY_BINARY_OLD = (byte) 0x02;
+    @Deprecated
     private static final byte BINARY_UUID_OLD = (byte) 0x03;
     private static final byte BINARY_UUID = (byte) 0x04;
     private static final byte BINARY_MD5 = (byte) 0x05;
@@ -77,6 +80,14 @@ final class BSONCodec {
             byte[] data = (byte[]) value;
             appendInt(buffer, data.length);
             appendByte(buffer, BINARY_BINARY);
+            // append data
+            appendBytes(buffer, data);
+        } else if (value instanceof Binary) {
+            encodeType(buffer, BINARY, key);
+            // append length
+            byte[] data = ((Binary) value).getBytes();
+            appendInt(buffer, data.length);
+            appendByte(buffer, BINARY_USERDEFINED);
             // append data
             appendBytes(buffer, data);
         }
@@ -248,8 +259,17 @@ final class BSONCodec {
                             document.put(key, new UUID(mostSignificantBits, leastSignificantBits));
                             break;
                         case BINARY_MD5:
-                        case BINARY_USERDEFINED:
                             throw new RuntimeException("Not Implemented");
+                        case BINARY_USERDEFINED:
+                            final byte[] userdef = getBytes(buffer, pos, binLen);
+                            document.put(key, new Binary() {
+                                @Override
+                                public byte[] getBytes() {
+                                    return userdef;
+                                }
+                            });
+                            pos += binLen;
+                            break;
                     }
                     break;
                 case UNDEFINED:
