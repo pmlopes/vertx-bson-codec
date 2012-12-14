@@ -35,7 +35,7 @@ Type mapping implementation status
 | Array | java.util.List | ✔ |  |
 | Binary::Generic | byte[] | ✔ |  |
 | Binary::Function | | |  |
-| Binary::Binary (OLD) | | | Deprecated |
+| Binary::Binary (OLD) | byte[] | ✔ | Deprecated/Only ReadOnly Support (when other sources write data to the Bus |
 | Binary::UUID (OLD) | | | Deprecated |
 | Binary::UUID | java.util.UUID | ✔ |  |
 | Binary::MD5 | | |  |

@@ -231,7 +231,13 @@ final class BSONCodec {
                             pos += binLen;
                             break;
                         case BINARY_FUNCTION:
+                            throw new RuntimeException("Not Implemented");
                         case BINARY_BINARY_OLD:
+                            int oldBinLen = getInt(buffer, pos);
+                            pos += 4;
+                            document.put(key, getBytes(buffer, pos, oldBinLen));
+                            pos += binLen;
+                            break;
                         case BINARY_UUID_OLD:
                             throw new RuntimeException("Not Implemented");
                         case BINARY_UUID:
