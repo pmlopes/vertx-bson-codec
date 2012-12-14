@@ -35,20 +35,20 @@ Type mapping implementation status
 | Array | java.util.List | ✔ |  |
 | Binary::Generic | byte[] | ✔ |  |
 | Binary::Function | | |  |
-| Binary::Binary (OLD) | byte[] | ✔ | Deprecated/Only ReadOnly Support (when other sources write data to the Bus |
-| Binary::UUID (OLD) | | | Deprecated |
+| _Binary::Binary (OLD)_ | byte[] | ✔ | _Deprecated/Only ReadOnly Support (when other sources write data to the Bus_ |
+| _Binary::UUID (OLD)_ | | | _Deprecated_ |
 | Binary::UUID | java.util.UUID | ✔ |  |
 | Binary::MD5 | | |  |
 | Binary::User Defined | bson.vertx.Binary | ✔ | This is a interface that you need to implement getBytes() : byte[] |
-| Undefined | | | Deprecated |
+| _Undefined_ | | | _Deprecated_ |
 | ObjectId | bson.vertx.ObjectId | ✔ |  |
 | Boolean | Boolean | ✔ |  |
 | UTC Datetime | java.util.Date | ✔ |  |
 | Null | null | ✔ |  |
 | Regular Expression | java.util.regex.Pattern | ✔ |  |
-| DBPointer | | | Deprecated |
+| _DBPointer_ | | | _Deprecated_ |
 | JavaScript Code | | |  |
-| Symbol | | | Deprecated |
+| _Symbol_ | | | _Deprecated_ |
 | JavaScript Code w/scope | | | |
 | 32bit Integer | Integer | ✔ | |
 | Timestamp | | |  |
