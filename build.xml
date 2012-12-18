@@ -8,6 +8,8 @@
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
     <property name="reports" location="build/reports"/>
+    <property name="modreppo" location="../vertx-mods"/>
+    <property name="version" value="1.0" />
 
     <target name="init">
         <!-- Create the time stamp -->
@@ -31,13 +33,27 @@
 
     <target name="dist" depends="compile" description="generate the distribution">
         <!-- Create the distribution directory -->
-        <mkdir dir="${dist}/mods/bson.vertx.eventbus-v1.0/lib"/>
-        <jar jarfile="${dist}/mods/bson.vertx.eventbus-v1.0/lib/bson.vertx.eventbus-v1.0.jar" basedir="${build}/java"/>
-        <copy file="${src}/mod.json" todir="${dist}/mods/bson.vertx.eventbus-v1.0"/>
+        <mkdir dir="${dist}/mods/bson.vertx.eventbus-v${version}/lib"/>
+        <jar jarfile="${dist}/mods/bson.vertx.eventbus-v${version}/lib/bson.vertx.eventbus-v${version}.jar" basedir="${build}/java"/>
+        <copy file="${src}/mod.json" todir="${dist}/mods/bson.vertx.eventbus-v${version}"/>
         <!-- clean up temp packaging -->
         <zip destfile="${dist}/mod.zip" basedir="${dist}/mods"/>
         <delete dir="${dist}/mods"/>
         <copy file="README.md" todir="${dist}"/>
+    </target>
+
+    <target name="publish" depends="dist" description="copies the generated artifacts to the vertx.mod repository clone">
+        <fail>
+            <condition>
+                <not>
+                    <available file="${modreppo}" type="dir" />
+                </not>
+            </condition>
+        </fail>
+
+        <mkdir dir="${modreppo}/mods/bson.vertx.eventbus-v${version}" />
+        <copy file="${dist}/mod.zip" todir="${modreppo}/mods/bson.vertx.eventbus-v${version}"/>
+        <copy file="${dist}/README.md" todir="${modreppo}/mods/bson.vertx.eventbus-v${version}"/>
     </target>
 
     <target name="test" depends="compile">
