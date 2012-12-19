@@ -2,7 +2,7 @@ import org.vertx.java.core.Handler;
 import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.deploy.Verticle;
 
-import bson.vertx.eventbus.BSONEventBus;
+import com.jetdrone.bson.vertx.eventbus.BSONEventBus;
 
 import java.util.HashMap;
 import java.util.Map;

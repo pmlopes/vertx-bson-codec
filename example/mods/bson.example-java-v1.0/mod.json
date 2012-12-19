@@ -1,5 +1,5 @@
 {
   "main": "App",
-  "includes": "bson.vertx.eventbus-v1.0",
+  "includes": "com.jetdrone.bson.vertx.eventbus-v1.0",
   "worker": false
 }

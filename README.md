@@ -39,9 +39,9 @@ Type mapping implementation status
 | _Binary::UUID (OLD)_ | | | _Deprecated_ |
 | Binary::UUID | java.util.UUID | ✔ |  |
 | Binary::MD5 | | |  |
-| Binary::User Defined | bson.vertx.Binary | ✔ | This is a interface that you need to implement getBytes() : byte[] |
+| Binary::User Defined | com.jetdrone.bson.vertx.Binary | ✔ | This is a interface that you need to implement getBytes() : byte[] |
 | _Undefined_ | | | _Deprecated_ |
-| ObjectId | bson.vertx.ObjectId | ✔ |  |
+| ObjectId | com.jetdrone.bson.vertx.ObjectId | ✔ |  |
 | Boolean | Boolean | ✔ |  |
 | UTC Datetime | java.util.Date | ✔ |  |
 | Null | null | ✔ |  |
@@ -53,8 +53,8 @@ Type mapping implementation status
 | 32bit Integer | Integer | ✔ | |
 | Timestamp | | |  |
 | 64bit Integer | Long | ✔ |  |
-| MinKey | bson.vertx.Key.MIN | ✔ |  |
-| MaxKey | bson.vertx.Key.MAX | ✔ |  |
+| MinKey | com.jetdrone.bson.vertx.Key.MIN | ✔ |  |
+| MaxKey | com.jetdrone.bson.vertx.Key.MAX | ✔ |  |
 
 Quickstart
 ----------

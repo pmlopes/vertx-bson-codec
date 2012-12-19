@@ -1,4 +1,4 @@
-import bson.vertx.eventbus.BSONEventBus
+import com.jetdrone.bson.vertx.eventbus.BSONEventBus
 
 def bsonEventBus = new BSONEventBus(vertx)
 

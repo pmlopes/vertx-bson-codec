@@ -1,4 +1,4 @@
-package bson.vertx.eventbus;
+package com.jetdrone.bson.vertx.eventbus;
 
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;

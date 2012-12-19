@@ -1,6 +1,6 @@
-package bson.vertx.eventbus;
+package com.jetdrone.bson.vertx.eventbus;
 
-import bson.vertx.ObjectId;
+import com.jetdrone.bson.vertx.ObjectId;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -19,7 +19,7 @@ public class ObjectIdEncodeTest {
 
         byte[] bson = BSONCodec.encode(json).getBytes();
 
-        byte[] expected = new byte[] {
+        byte[] expected = new byte[]{
                 // length
                 0x14, 0x00, 0x00, 0x00,
                 // data

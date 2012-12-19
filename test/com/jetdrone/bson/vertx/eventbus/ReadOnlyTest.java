@@ -1,4 +1,4 @@
-package bson.vertx.eventbus;
+package com.jetdrone.bson.vertx.eventbus;
 
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
@@ -11,7 +11,7 @@ public class ReadOnlyTest {
 
     @Test
     public void testOldBinary() {
-        byte[] bson = new byte[] {
+        byte[] bson = new byte[]{
                 // length
                 0x14, 0x00, 0x00, 0x00,
                 // data
@@ -21,6 +21,6 @@ public class ReadOnlyTest {
         };
 
         Map document = BSONCodec.decode(new Buffer(bson));
-        assertArrayEquals(new byte[] {'o', 'l', 'd'}, (byte[]) document.get("_"));
+        assertArrayEquals(new byte[]{'o', 'l', 'd'}, (byte[]) document.get("_"));
     }
 }

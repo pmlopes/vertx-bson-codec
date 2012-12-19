@@ -1,4 +1,4 @@
-package bson.vertx;
+package com.jetdrone.bson.vertx;
 
 /**
  * MD5 Binary, need to find a JDK native class for it, keep here for reference

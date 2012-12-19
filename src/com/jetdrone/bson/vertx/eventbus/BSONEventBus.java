@@ -1,4 +1,4 @@
-package bson.vertx.eventbus;
+package com.jetdrone.bson.vertx.eventbus;
 
 import groovy.lang.Closure;
 import org.vertx.java.core.AsyncResult;

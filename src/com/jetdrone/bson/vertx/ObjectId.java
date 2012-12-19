@@ -1,4 +1,4 @@
-package bson.vertx;
+package com.jetdrone.bson.vertx;
 
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;

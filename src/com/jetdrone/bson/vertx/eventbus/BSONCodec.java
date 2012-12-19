@@ -1,14 +1,14 @@
-package bson.vertx.eventbus;
+package com.jetdrone.bson.vertx.eventbus;
 
-import bson.vertx.Binary;
-import bson.vertx.Key;
-import bson.vertx.ObjectId;
+import com.jetdrone.bson.vertx.Binary;
+import com.jetdrone.bson.vertx.Key;
+import com.jetdrone.bson.vertx.ObjectId;
 import org.vertx.java.core.buffer.Buffer;
 
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static bson.vertx.eventbus.LE.*;
+import static com.jetdrone.bson.vertx.eventbus.LE.*;
 
 final class BSONCodec {
 

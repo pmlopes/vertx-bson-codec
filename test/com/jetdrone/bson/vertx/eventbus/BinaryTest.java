@@ -1,6 +1,6 @@
-package bson.vertx.eventbus;
+package com.jetdrone.bson.vertx.eventbus;
 
-import bson.vertx.Binary;
+import com.jetdrone.bson.vertx.Binary;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -20,7 +20,7 @@ public class BinaryTest {
 
         byte[] bson = BSONCodec.encode(json).getBytes();
 
-        byte[] expected = new byte[] {
+        byte[] expected = new byte[]{
                 // length
                 0x1d, 0x00, 0x00, 0x00,
                 // data
@@ -47,7 +47,7 @@ public class BinaryTest {
 
         byte[] bson = BSONCodec.encode(json).getBytes();
 
-        byte[] expected = new byte[] {
+        byte[] expected = new byte[]{
                 // length
                 0x11, 0x00, 0x00, 0x00,
                 // data
@@ -60,6 +60,6 @@ public class BinaryTest {
 
         // reverse
         Map document = BSONCodec.decode(new Buffer(expected));
-        assertArrayEquals(new byte[] {'u', 'd', 'e', 'f'}, ((Binary) document.get("_")).getBytes());
+        assertArrayEquals(new byte[]{'u', 'd', 'e', 'f'}, ((Binary) document.get("_")).getBytes());
     }
 }
