@@ -34,11 +34,11 @@ Type mapping implementation status
 | Embedded Document | java.util.Map | ✔ |  |
 | Array | java.util.List | ✔ |  |
 | Binary::Generic | byte[] | ✔ |  |
-| Binary::Function | | |  |
+| Binary::Function |  |  |  |
 | _Binary::Binary (OLD)_ | byte[] | ✔ | _Deprecated/Only ReadOnly Support (when other sources write data to the Bus_ |
 | _Binary::UUID (OLD)_ | | | _Deprecated_ |
 | Binary::UUID | java.util.UUID | ✔ |  |
-| Binary::MD5 | | |  |
+| Binary::MD5 |  |  |  |
 | Binary::User Defined | com.jetdrone.bson.vertx.Binary | ✔ | This is a interface that you need to implement getBytes() : byte[] |
 | _Undefined_ | | | _Deprecated_ |
 | ObjectId | com.jetdrone.bson.vertx.ObjectId | ✔ |  |
@@ -46,12 +46,12 @@ Type mapping implementation status
 | UTC Datetime | java.util.Date | ✔ |  |
 | Null | null | ✔ |  |
 | Regular Expression | java.util.regex.Pattern | ✔ |  |
-| _DBPointer_ | | | _Deprecated_ |
-| JavaScript Code | | |  |
+| _DBPointer_ |  |  | _Deprecated_ |
+| JavaScript Code |  |  |  |
 | _Symbol_ | | | _Deprecated_ |
-| JavaScript Code w/scope | | | |
-| 32bit Integer | Integer | ✔ | |
-| Timestamp | | |  |
+| JavaScript Code w/scope |  |  |  |
+| 32bit Integer | Integer | ✔ |  |
+| Timestamp | java.sql.Timestamp | ✔ |  |
 | 64bit Integer | Long | ✔ |  |
 | MinKey | com.jetdrone.bson.vertx.Key.MIN | ✔ |  |
 | MaxKey | com.jetdrone.bson.vertx.Key.MAX | ✔ |  |

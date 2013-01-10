@@ -5,6 +5,7 @@ import com.jetdrone.bson.vertx.Key;
 import com.jetdrone.bson.vertx.ObjectId;
 import org.vertx.java.core.buffer.Buffer;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -101,8 +102,13 @@ final class BSONCodec {
             encodeType(buffer, BOOLEAN, key);
             appendBoolean(buffer, (Boolean) value);
         } else if (value instanceof Date) {
-            encodeType(buffer, UTC_DATETIME, key);
-            appendLong(buffer, ((Date) value).getTime());
+            if (value instanceof Timestamp) {
+                encodeType(buffer, TIMESTAMP, key);
+                appendLong(buffer, ((Date) value).getTime());
+            } else {
+                encodeType(buffer, UTC_DATETIME, key);
+                appendLong(buffer, ((Date) value).getTime());
+            }
         } else if (value instanceof Pattern) {
             encodeType(buffer, REGEX, key);
             Pattern pattern = (Pattern) value;
@@ -135,12 +141,7 @@ final class BSONCodec {
         else if (value instanceof Integer) {
             encodeType(buffer, INT32, key);
             appendInt(buffer, (Integer) value);
-        }
-//            if (value instanceof Timestamp) {
-//                encodeType(buffer, TIMESTAMP, key);
-//                continue;
-//            }
-        else if (value instanceof Long) {
+        } else if (value instanceof Long) {
             encodeType(buffer, INT64, key);
             appendLong(buffer, (Long) value);
         } else if (value instanceof Key) {
@@ -149,10 +150,10 @@ final class BSONCodec {
             } else if (value == Key.MAX) {
                 encodeType(buffer, MAXKEY, key);
             } else {
-                throw new RuntimeException("Dont know how to encode: " + value);
+                throw new RuntimeException("Don't know how to encode: " + value);
             }
         } else {
-            throw new RuntimeException("Dont know how to encode: " + value);
+            throw new RuntimeException("Don't know how to encode: " + value);
         }
     }
 
@@ -327,7 +328,9 @@ final class BSONCodec {
                     pos += 4;
                     break;
                 case TIMESTAMP:
-                    throw new RuntimeException("Not Implemented");
+                    document.put(key, new Timestamp(getLong(buffer, pos)));
+                    pos += 8;
+                    break;
                 case INT64:
                     document.put(key, getLong(buffer, pos));
                     pos += 8;
