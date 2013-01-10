@@ -1,6 +1,7 @@
 package com.jetdrone.bson.vertx.eventbus;
 
 import com.jetdrone.bson.vertx.Binary;
+import com.jetdrone.bson.vertx.MD5;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -61,5 +62,32 @@ public class BinaryTest {
         // reverse
         Map document = BSONCodec.decode(new Buffer(expected));
         assertArrayEquals(new byte[]{'u', 'd', 'e', 'f'}, ((Binary) document.get("_")).getBytes());
+    }
+
+    @Test
+    public void testMD5Binary() {
+        Map<String, MD5> json = new HashMap<>();
+        json.put("_", new MD5() {
+            public byte[] getHash() {
+                return "udef".getBytes();
+            }
+        });
+
+        byte[] bson = BSONCodec.encode(json).getBytes();
+
+        byte[] expected = new byte[]{
+                // length
+                0x11, 0x00, 0x00, 0x00,
+                // data
+                0x05, '_', 0x00, 0x04, 0x00, 0x00, 0x00, 0x05, 'u', 'd', 'e', 'f',
+                // end
+                0x00
+        };
+
+        assertArrayEquals(expected, bson);
+
+        // reverse
+        Map document = BSONCodec.decode(new Buffer(expected));
+        assertArrayEquals(new byte[]{'u', 'd', 'e', 'f'}, ((MD5) document.get("_")).getHash());
     }
 }

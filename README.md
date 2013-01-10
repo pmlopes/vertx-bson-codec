@@ -38,7 +38,7 @@ Type mapping implementation status
 | _Binary::Binary (OLD)_ | byte[] | ✔ | _Deprecated/Only ReadOnly Support (when other sources write data to the Bus_ |
 | _Binary::UUID (OLD)_ | | | _Deprecated_ |
 | Binary::UUID | java.util.UUID | ✔ |  |
-| Binary::MD5 |  |  |  |
+| Binary::MD5 | com.jetdrone.bson.vertx.MD5 | ✔ | This is a interface that you need to implement getHash() : byte[] |
 | Binary::User Defined | com.jetdrone.bson.vertx.Binary | ✔ | This is a interface that you need to implement getBytes() : byte[] |
 | _Undefined_ | | | _Deprecated_ |
 | ObjectId | com.jetdrone.bson.vertx.ObjectId | ✔ |  |

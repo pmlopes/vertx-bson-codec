@@ -2,6 +2,7 @@ package com.jetdrone.bson.vertx.eventbus;
 
 import com.jetdrone.bson.vertx.Binary;
 import com.jetdrone.bson.vertx.Key;
+import com.jetdrone.bson.vertx.MD5;
 import com.jetdrone.bson.vertx.ObjectId;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -89,6 +90,14 @@ final class BSONCodec {
             byte[] data = ((Binary) value).getBytes();
             appendInt(buffer, data.length);
             appendByte(buffer, BINARY_USERDEFINED);
+            // append data
+            appendBytes(buffer, data);
+        } else if (value instanceof MD5) {
+            encodeType(buffer, BINARY, key);
+            // append length
+            byte[] data = ((MD5) value).getHash();
+            appendInt(buffer, data.length);
+            appendByte(buffer, BINARY_MD5);
             // append data
             appendBytes(buffer, data);
         }
@@ -260,7 +269,15 @@ final class BSONCodec {
                             document.put(key, new UUID(mostSignificantBits, leastSignificantBits));
                             break;
                         case BINARY_MD5:
-                            throw new RuntimeException("Not Implemented");
+                            final byte[] md5 = getBytes(buffer, pos, binLen);
+                            document.put(key, new MD5() {
+                                @Override
+                                public byte[] getHash() {
+                                    return md5;
+                                }
+                            });
+                            pos += binLen;
+                            break;
                         case BINARY_USERDEFINED:
                             final byte[] userdef = getBytes(buffer, pos, binLen);
                             document.put(key, new Binary() {
@@ -404,8 +421,25 @@ final class BSONCodec {
                             list.add(Integer.parseInt(key), new UUID(mostSingnificantBits, leastSingnificantBits));
                             break;
                         case BINARY_MD5:
+                            final byte[] md5 = getBytes(buffer, pos, binLen);
+                            list.add(Integer.parseInt(key), new MD5() {
+                                @Override
+                                public byte[] getHash() {
+                                    return md5;
+                                }
+                            });
+                            pos += binLen;
+                            break;
                         case BINARY_USERDEFINED:
-                            throw new RuntimeException("Not Implemented");
+                            final byte[] userdef = getBytes(buffer, pos, binLen);
+                            list.add(Integer.parseInt(key), new Binary() {
+                                @Override
+                                public byte[] getBytes() {
+                                    return userdef;
+                                }
+                            });
+                            pos += binLen;
+                            break;
                     }
                     break;
                 case UNDEFINED:

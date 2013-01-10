@@ -1,18 +1,18 @@
 package com.jetdrone.bson.vertx;
 
 /**
- * MD5 Binary, need to find a JDK native class for it, keep here for reference
+ * MD5 Hash
  */
-public class MD5 {
+public interface MD5 {
 
-//    MessageDigest md = MessageDigest.getInstance("MD5");
-//    byte[] thedigest = md.digest(bytesOfMessage);
-
-    public byte[] getBytes() {
-        return new byte[0];
-    }
-
-    public String toString() {
-        return "";
-    }
+    /**
+     * Hash of a Digest
+     *
+     * e.g.:
+     * MessageDigest md = MessageDigest.getInstance("MD5");
+     * byte[] digest = md.digest(data);
+     *
+     * @return byte representation of this hash
+     */
+    byte[] getHash();
 }
