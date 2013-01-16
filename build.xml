@@ -1,50 +1,11 @@
-<project name="com.jetdrone.bson.vertx.eventbus" default="dist" basedir=".">
-    <description>
-        Extended Vertx.IO EventBus that supports BSON encoding
-    </description>
+<project name="com.jetdrone.bson.vertx.eventbus" basedir=".">
+
     <!-- set global properties for this build -->
-    <property name="src" location="src/main/java"/>
-    <property name="test" location="src/test/java"/>
-    <property name="build" location="build"/>
     <property name="dist" location="dist"/>
-    <property name="reports" location="build/reports"/>
     <property name="modreppo" location="../vertx-mods"/>
-    <property name="version" value="1.0"/>
+    <property name="version" value="1.1"/>
 
-    <target name="init">
-        <!-- Create the time stamp -->
-        <tstamp/>
-        <!-- Create the build directory structure used by compile -->
-        <mkdir dir="${build}"/>
-        <mkdir dir="${build}/java"/>
-        <mkdir dir="${build}/test"/>
-        <mkdir dir="${reports}"/>
-    </target>
-
-    <target name="compile" depends="init" description="compile the source ">
-        <javac srcdir="${src}" destdir="${build}/java" includeantruntime="false">
-            <classpath>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-            </classpath>
-        </javac>
-    </target>
-
-    <target name="dist" depends="compile" description="generate the distribution">
-        <!-- Create the distribution directory -->
-        <mkdir dir="${dist}/mods/com.jetdrone.bson.vertx.eventbus-v${version}/lib"/>
-        <jar jarfile="${dist}/mods/com.jetdrone.bson.vertx.eventbus-v${version}/lib/com.jetdrone.bson.vertx.eventbus-v${version}.jar"
-             basedir="${build}/java"/>
-        <copy file="${src}/mod.json" todir="${dist}/mods/com.jetdrone.bson.vertx.eventbus-v${version}"/>
-        <!-- clean up temp packaging -->
-        <zip destfile="${dist}/mod.zip" basedir="${dist}/mods"/>
-        <delete dir="${dist}/mods"/>
-        <copy file="README.md" todir="${dist}"/>
-    </target>
-
-    <target name="publish" depends="dist"
-            description="copies the generated artifacts to the vertx.mod repository clone">
+    <target name="publish" description="copies the generated artifacts to the vertx.mod repository clone">
         <fail>
             <condition>
                 <not>
@@ -58,35 +19,4 @@
         <copy file="${dist}/README.md" todir="${modreppo}/mods/com.jetdrone.bson.vertx.eventbus-v${version}"/>
     </target>
 
-    <target name="test" depends="compile">
-        <javac srcdir="${test}" destdir="${build}/test" includeantruntime="false">
-            <classpath>
-                <pathelement path="${build}/java"/>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-            </classpath>
-        </javac>
-        <junit printsummary="yes" haltonfailure="yes" showoutput="yes">
-            <classpath>
-                <pathelement path="${build}/java"/>
-                <pathelement path="${build}/test"/>
-                <fileset dir="lib">
-                    <include name="*.jar"/>
-                </fileset>
-            </classpath>
-            <batchtest fork="yes" todir="${reports}">
-                <formatter type="xml"/>
-                <fileset dir="${test}">
-                    <include name="**/*Test*.java"/>
-                </fileset>
-            </batchtest>
-        </junit>
-    </target>
-
-    <target name="clean" description="clean up">
-        <!-- Delete the ${build} and ${dist} directory trees -->
-        <delete dir="${build}"/>
-        <delete dir="${dist}"/>
-    </target>
 </project>
