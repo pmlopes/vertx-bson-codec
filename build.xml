@@ -1,7 +1,7 @@
 <project name="com.jetdrone.bson.vertx.eventbus" basedir=".">
 
     <!-- set global properties for this build -->
-    <property name="dist" location="dist"/>
+    <property name="dist" location="target"/>
     <property name="modreppo" location="../vertx-mods"/>
     <property name="version" value="1.1"/>
 
