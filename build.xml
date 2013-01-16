@@ -3,8 +3,8 @@
         Extended Vertx.IO EventBus that supports BSON encoding
     </description>
     <!-- set global properties for this build -->
-    <property name="src" location="src"/>
-    <property name="test" location="test"/>
+    <property name="src" location="src/main/java"/>
+    <property name="test" location="src/test/java"/>
     <property name="build" location="build"/>
     <property name="dist" location="dist"/>
     <property name="reports" location="build/reports"/>
