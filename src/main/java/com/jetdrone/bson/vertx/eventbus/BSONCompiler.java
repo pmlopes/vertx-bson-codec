@@ -2,15 +2,13 @@ package com.jetdrone.bson.vertx.eventbus;
 
 import com.jetdrone.bson.BSONElement;
 import com.jetdrone.bson.BSONObject;
+import com.jetdrone.bson.vertx.ObjectId;
 import org.vertx.java.core.buffer.Buffer;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.jetdrone.bson.vertx.eventbus.LE.*;
 
@@ -61,26 +59,75 @@ public class BSONCompiler {
         }
     }
 
+    public BSONCompiler(Class<? extends BSONObject> clazz) throws NoSuchMethodException {
+        Map<Class, Method> encoderMap = new HashMap<>();
+
+        encoderMap.put(Double.class, this.getClass().getDeclaredMethod("encodeFloat", new Class[]{Buffer.class, String.class, Double.class}) );
+        encoderMap.put(String.class, this.getClass().getDeclaredMethod("encodeString", new Class[]{Buffer.class, String.class, String.class}) );
+        encoderMap.put(BSONObject.class, this.getClass().getDeclaredMethod("encodeEmbeddedDocument", new Class[]{Buffer.class, String.class, BSONObject.class}) );
+        encoderMap.put(List.class, this.getClass().getDeclaredMethod("encodeArray", new Class[]{Buffer.class, String.class, List.class}) );
+        encoderMap.put(byte[].class, this.getClass().getDeclaredMethod("encodeBinaryBinary", new Class[]{Buffer.class, String.class, byte[].class}) );
+        encoderMap.put(UUID.class, this.getClass().getDeclaredMethod("encodeBinaryUUID", new Class[]{Buffer.class, String.class, UUID.class}) );
+
+        for (Field field : clazz.getFields()) {
+            if (field.isAnnotationPresent(BSONElement.class)) {
+                Method m = encoderMap.get(field.getType());
+                if (m == null) {
+                    throw new RuntimeException("Don't know how to encode: " + field.getType().getName());
+                }
+                encoders.add(new Encoder(field, m));
+            }
+        }
+    }
+
+    // encoders
+
+    private void encodeFloat(Buffer buffer, String key, Double value) {
+        appendByte(buffer, FLOAT);
+        appendCString(buffer, key);
+        appendDouble(buffer, value);
+    }
+
     private void encodeString(Buffer buffer, String key, String value) {
         appendByte(buffer, STRING);
         appendCString(buffer, key);
         appendString(buffer, value);
     }
 
-    private List<Encoder> encoders = new ArrayList<>();
-
-    public void compile(Class<? extends BSONObject> clazz) throws NoSuchMethodException {
-
-        Map<Class, Method> encoderMap = new HashMap<>();
-
-        encoderMap.put(String.class, BSONCompiler.class.getDeclaredMethod("encodeString", new Class[] {Buffer.class, String.class, String.class}) );
-
-        for (Field field : clazz.getFields()) {
-            if (field.isAnnotationPresent(BSONElement.class)) {
-                encoders.add(new Encoder(field, encoderMap.get(field.getType())));
-            }
-        }
+    private void encodeEmbeddedDocument(Buffer buffer, String key, BSONObject document) {
+        throw new RuntimeException("Not implemented yet");
     }
+
+    private void encodeArray(Buffer buffer, String key, List document) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    private void encodeBinaryBinary(Buffer buffer, String key, byte[] binary) {
+        appendByte(buffer, BINARY);
+        appendCString(buffer, key);
+        // append length
+        appendInt(buffer, binary.length);
+        appendByte(buffer, BINARY_BINARY);
+        // append data
+        appendBytes(buffer, binary);
+    }
+
+    private void encodeBinaryUUID(Buffer buffer, String key, UUID uuid) {
+        appendByte(buffer, BINARY);
+        appendCString(buffer, key);
+        // append length
+        appendInt(buffer, 16);
+        appendByte(buffer, BINARY_UUID);
+        // append data
+        buffer.appendLong(uuid.getMostSignificantBits());
+        buffer.appendLong(uuid.getLeastSignificantBits());
+    }
+
+    private void encodeObjectId(Buffer buffer, String key, ObjectId objectId) {
+
+    }
+
+    private List<Encoder> encoders = new ArrayList<>();
 
     public Buffer serialize(BSONObject bson) throws IllegalAccessException, InvocationTargetException {
         Buffer buffer = new Buffer();
@@ -94,27 +141,5 @@ public class BSONCompiler {
         setInt(buffer, 0, buffer.length() + 1);
         appendByte(buffer, (byte) 0x00);
         return buffer;
-
     }
-
-    public static void main(String[] args) throws Exception {
-        BSONCompiler compiler = new BSONCompiler();
-
-        compiler.compile(SimpleBSON.class);
-
-        SimpleBSON bson = new SimpleBSON();
-        bson.name = "SimpleBSON";
-
-        Buffer buffer = compiler.serialize(bson);
-
-//        byte[] data = buffer.getBytes();
-//        for (byte b : data) {
-//            System.out.println(b + " " + (char) b);
-//        }
-    }
-}
-
-class SimpleBSON implements BSONObject {
-    @BSONElement
-    public String name;
 }
