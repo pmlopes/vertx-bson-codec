@@ -186,7 +186,7 @@ final class BSONCodec {
         return buffer;
     }
 
-    public static Buffer encode(List list) {
+    private static Buffer encode(List list) {
         Buffer buffer = new Buffer();
         // allocate space for the document length
         appendInt(buffer, 0);
