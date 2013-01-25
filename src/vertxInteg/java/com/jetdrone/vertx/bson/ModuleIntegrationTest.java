@@ -1,5 +1,7 @@
 package com.jetdrone.vertx.bson;
 
+import com.jetdrone.bson.BSONElement;
+import com.jetdrone.bson.BSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -125,6 +127,40 @@ public class ModuleIntegrationTest extends VertxTestBase {
         try {
             JsonObject answer = queue.poll(timeout, TimeUnit.SECONDS);
             assertEquals(10, (int) answer.getInteger("value"));
+        } catch (InterruptedException e) {
+            fail(e.getMessage());
+        }
+    }
+
+    public static class MyTest implements BSONObject {
+        @BSONElement
+        public int value = 5;
+    }
+
+    @Test
+    public void testSimpleBSONObjectHandler() {
+
+        final LinkedBlockingQueue<Map> queue = new LinkedBlockingQueue<>();
+
+        BSONEventBus bsonEventBus = new BSONEventBus(getVertx());
+
+        bsonEventBus.registerHandler("bson.BSONObject.handler", new Handler<Message<Map>>() {
+            @Override
+            public void handle(Message<Map> mapMessage) {
+                Map<String, Object> data = new HashMap<>();
+                data.put("value", mapMessage.body.get("value"));
+                queue.offer(data);
+            }
+        });
+
+        MyTest myTest = new MyTest();
+        // by default the initial value is 5 (see above)
+
+        bsonEventBus.send("bson.BSONObject.handler", myTest);
+
+        try {
+            Map answer = queue.poll(timeout, TimeUnit.SECONDS);
+            assertEquals(5, answer.get("value"));
         } catch (InterruptedException e) {
             fail(e.getMessage());
         }

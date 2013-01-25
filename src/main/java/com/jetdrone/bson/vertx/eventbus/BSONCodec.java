@@ -223,7 +223,8 @@ final class BSONCodec {
         List<Encoder> encoders = COMPILERS.get(bson.getClass());
 
         if (encoders == null) {
-            throw new RuntimeException("Class " + bson.getClass().getName() + " is not registered in the compiler unit");
+            compile(bson.getClass());
+            encoders = COMPILERS.get(bson.getClass());
         }
 
         Buffer buffer = new Buffer();
