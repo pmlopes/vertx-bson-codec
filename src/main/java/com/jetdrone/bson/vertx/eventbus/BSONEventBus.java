@@ -1,5 +1,6 @@
 package com.jetdrone.bson.vertx.eventbus;
 
+import com.jetdrone.bson.BSONObject;
 import groovy.lang.Closure;
 import org.vertx.java.core.AsyncResult;
 import org.vertx.java.core.AsyncResultHandler;
@@ -99,6 +100,7 @@ public class BSONEventBus {
         this(vertx.toJavaVertx());
     }
 
+    @SuppressWarnings("unused")
     public void registerLocalHandler(String address, Handler<Message<Map>> handler) {
         Handler<Message<Buffer>> wrapped = wrapHandler(handler);
         handlerMap.put(handler, wrapped);
@@ -106,12 +108,14 @@ public class BSONEventBus {
     }
 
     // Groovy
+    @SuppressWarnings("unused")
     public void registerLocalHandler(String address, Closure<Void> handler) {
         Handler<Message<Buffer>> wrapped = wrapClosure(handler);
         handlerMap.put(handler, wrapped);
         eventBus.registerLocalHandler(address, wrapped);
     }
 
+    @SuppressWarnings("unused")
     public void registerHandler(String address, Handler<Message<Map>> handler) {
         Handler<Message<Buffer>> wrapped = wrapHandler(handler);
         handlerMap.put(handler, wrapped);
@@ -119,12 +123,14 @@ public class BSONEventBus {
     }
 
     // Groovy
+    @SuppressWarnings("unused")
     public void registerHandler(String address, Closure<Void> handler) {
         Handler<Message<Buffer>> wrapped = wrapClosure(handler);
         handlerMap.put(handler, wrapped);
         eventBus.registerHandler(address, wrapped);
     }
 
+    @SuppressWarnings("unused")
     public void unregisterHandler(String address, Handler<Message<Map>> handler) {
         Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
         if (wrapped != null) {
@@ -133,6 +139,7 @@ public class BSONEventBus {
     }
 
     // Groovy
+    @SuppressWarnings("unused")
     public void unregisterHandler(String address, Closure<Void> handler) {
         Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
         if (wrapped != null) {
@@ -140,6 +147,7 @@ public class BSONEventBus {
         }
     }
 
+    @SuppressWarnings("unused")
     public void registerHandler(String address, Handler<Message<Map>> handler, AsyncResultHandler<Void> resultHandler) {
         Handler<Message<Buffer>> wrapped = wrapHandler(handler);
         handlerMap.put(handler, wrapped);
@@ -147,6 +155,7 @@ public class BSONEventBus {
     }
 
     // Groovy
+    @SuppressWarnings("unused")
     public void registerHandler(String address, Closure<Void> handler, Closure<Void> resultHandler) {
         Handler<Message<Buffer>> wrapped = wrapClosure(handler);
         AsyncResultHandler<Void> result = wrapAsyncResultClosure(resultHandler);
@@ -159,6 +168,7 @@ public class BSONEventBus {
         }
     }
 
+    @SuppressWarnings("unused")
     public void unregisterHandler(String address, Handler<Message<Map>> handler, AsyncResultHandler<Void> resultHandler) {
         Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
 
@@ -168,6 +178,7 @@ public class BSONEventBus {
     }
 
     // Groovy
+    @SuppressWarnings("unused")
     public void unregisterHandler(String address, Closure<Void> handler, Closure<Void> resultHandler) {
         Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
         AsyncResultHandler<Void> result = wrapAsyncResultClosure(resultHandler);
@@ -181,21 +192,61 @@ public class BSONEventBus {
         }
     }
 
+    @SuppressWarnings("unused")
     public void send(String address, Map message, Handler<Message<Map>> replyHandler) {
         Buffer _message = BSONCodec.encode(message);
         eventBus.send(address, _message, wrapHandler(replyHandler));
     }
 
     // Groovy
+    @SuppressWarnings("unused")
     public void send(String address, Map message, Closure<Void> replyHandler) {
         eventBus.send(address, BSONCodec.encode(message), wrapClosure(replyHandler));
     }
 
+    /**
+     * Send a Map message to the underlying EventBus
+     * @see EventBus#send(String, org.vertx.java.core.buffer.Buffer)
+     *
+     * @param address The address that will receive this message
+     * @param message The message payload
+     */
+    @SuppressWarnings("unused")
     public void send(String address, Map message) {
         eventBus.send(address, BSONCodec.encode(message));
     }
 
+    /**
+     * Send a BSONObject message to the underlying EventBus
+     * @see EventBus#send(String, org.vertx.java.core.buffer.Buffer)
+     *
+     * @param address The address that will receive this message
+     * @param message The message payload
+     */
+    @SuppressWarnings("unused")
+    public void send(String address, BSONObject message) {
+        eventBus.send(address, BSONCodec.encode(message));
+    }
+
+    /**
+     * Publishes a Message to the EventBus (broadcast)
+     *
+     * @param address The address that will receive this message
+     * @param message The message payload
+     */
+    @SuppressWarnings("unused")
     public void publish(String address, Map message) {
+        eventBus.publish(address, BSONCodec.encode(message));
+    }
+
+    /**
+     * Publishes a Message to the EventBus (broadcast)
+     *
+     * @param address The address that will receive this message
+     * @param message The message payload
+     */
+    @SuppressWarnings("unused")
+    public void publish(String address, BSONObject message) {
         eventBus.publish(address, BSONCodec.encode(message));
     }
 }
