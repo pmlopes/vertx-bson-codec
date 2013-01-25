@@ -1,11 +1,15 @@
 package com.jetdrone.bson.vertx.eventbus;
 
+import com.jetdrone.bson.BSONElement;
+import com.jetdrone.bson.BSONObject;
 import com.jetdrone.bson.vertx.Binary;
 import com.jetdrone.bson.vertx.Key;
 import com.jetdrone.bson.vertx.MD5;
 import com.jetdrone.bson.vertx.ObjectId;
 import org.vertx.java.core.buffer.Buffer;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -13,6 +17,16 @@ import java.util.regex.Pattern;
 import static com.jetdrone.bson.vertx.eventbus.LE.*;
 
 final class BSONCodec {
+
+    private static class Encoder {
+        final String name;
+        final Field field;
+
+        Encoder(Field field) {
+            this.name = field.getName();
+            this.field = field;
+        }
+    }
 
     private static final byte FLOAT = (byte) 0x01;
     private static final byte STRING = (byte) 0x02;
@@ -47,28 +61,43 @@ final class BSONCodec {
     private static final byte MINKEY = (byte) 0xFF;
     private static final byte MAXKEY = (byte) 0x7F;
 
-    private static void encodeType(Buffer buffer, byte type, String key) {
-        appendByte(buffer, type);
-        appendCString(buffer, key);
+    private static final Map<Class<? extends BSONObject>, List<Encoder>> COMPILERS = new IdentityHashMap<>();
+
+    public static void compile(Class<? extends BSONObject> clazz) {
+        List<Encoder> encoders = new ArrayList<>();
+        for (Field field : clazz.getFields()) {
+            if (field.isAnnotationPresent(BSONElement.class)) {
+                // TODO: verify the field type for supported types field.getType();
+                encoders.add(new Encoder(field));
+            }
+        }
+        COMPILERS.put(clazz, encoders);
     }
 
-    private static void encode(Buffer buffer, String key, Object value) {
+    // temp change to allow calls from the compiler
+    public static void encode(Buffer buffer, String key, Object value) {
         if (value == null) {
-            encodeType(buffer, NULL, key);
+            appendByte(buffer, NULL);
+            appendCString(buffer, key);
         } else if (value instanceof Double) {
-            encodeType(buffer, FLOAT, key);
+            appendByte(buffer, FLOAT);
+            appendCString(buffer, key);
             appendDouble(buffer, (Double) value);
         } else if (value instanceof String) {
-            encodeType(buffer, STRING, key);
+            appendByte(buffer, STRING);
+            appendCString(buffer, key);
             appendString(buffer, (String) value);
         } else if (value instanceof Map) {
-            encodeType(buffer, EMBEDDED_DOCUMENT, key);
+            appendByte(buffer, EMBEDDED_DOCUMENT);
+            appendCString(buffer, key);
             buffer.appendBuffer(encode((Map) value));
         } else if (value instanceof List) {
-            encodeType(buffer, ARRAY, key);
+            appendByte(buffer, ARRAY);
+            appendCString(buffer, key);
             buffer.appendBuffer(encode((List) value));
         } else if (value instanceof UUID) {
-            encodeType(buffer, BINARY, key);
+            appendByte(buffer, BINARY);
+            appendCString(buffer, key);
             // append length
             appendInt(buffer, 16);
             appendByte(buffer, BINARY_UUID);
@@ -77,7 +106,8 @@ final class BSONCodec {
             buffer.appendLong(uuid.getMostSignificantBits());
             buffer.appendLong(uuid.getLeastSignificantBits());
         } else if (value instanceof byte[]) {
-            encodeType(buffer, BINARY, key);
+            appendByte(buffer, BINARY);
+            appendCString(buffer, key);
             // append length
             byte[] data = (byte[]) value;
             appendInt(buffer, data.length);
@@ -85,7 +115,8 @@ final class BSONCodec {
             // append data
             appendBytes(buffer, data);
         } else if (value instanceof Binary) {
-            encodeType(buffer, BINARY, key);
+            appendByte(buffer, BINARY);
+            appendCString(buffer, key);
             // append length
             byte[] data = ((Binary) value).getBytes();
             appendInt(buffer, data.length);
@@ -93,33 +124,35 @@ final class BSONCodec {
             // append data
             appendBytes(buffer, data);
         } else if (value instanceof MD5) {
-            encodeType(buffer, BINARY, key);
+            appendByte(buffer, BINARY);
+            appendCString(buffer, key);
             // append length
             byte[] data = ((MD5) value).getHash();
             appendInt(buffer, data.length);
             appendByte(buffer, BINARY_MD5);
             // append data
             appendBytes(buffer, data);
-        }
-//            if (value instanceof ) {
-//                encodeType(buffer, UNDEFINED, key);
-//            }
-        else if (value instanceof ObjectId) {
-            encodeType(buffer, OBJECT_ID, key);
+        } else if (value instanceof ObjectId) {
+            appendByte(buffer, OBJECT_ID);
+            appendCString(buffer, key);
             appendBytes(buffer, ((ObjectId) value).getBytes());
         } else if (value instanceof Boolean) {
-            encodeType(buffer, BOOLEAN, key);
+            appendByte(buffer, BOOLEAN);
+            appendCString(buffer, key);
             appendBoolean(buffer, (Boolean) value);
         } else if (value instanceof Date) {
             if (value instanceof Timestamp) {
-                encodeType(buffer, TIMESTAMP, key);
+                appendByte(buffer, TIMESTAMP);
+                appendCString(buffer, key);
                 appendLong(buffer, ((Date) value).getTime());
             } else {
-                encodeType(buffer, UTC_DATETIME, key);
+                appendByte(buffer, UTC_DATETIME);
+                appendCString(buffer, key);
                 appendLong(buffer, ((Date) value).getTime());
             }
         } else if (value instanceof Pattern) {
-            encodeType(buffer, REGEX, key);
+            appendByte(buffer, REGEX);
+            appendCString(buffer, key);
             Pattern pattern = (Pattern) value;
             appendCString(buffer, pattern.pattern());
             int iFlags = pattern.flags();
@@ -138,29 +171,28 @@ final class BSONCodec {
             }
             // TODO: convert flags to BSON flags x,l
             appendCString(buffer, flags.toString());
-        }
-//            if (value instanceof JSCode) {
-//                encodeType(buffer, JSCODE, key);
-//                continue;
-//            }
-//            if (value instanceof JSCodeWS) {
-//                encodeType(buffer, JSCODE_WS, key);
-//                continue;
-//            }
-        else if (value instanceof Integer) {
-            encodeType(buffer, INT32, key);
+        } else if (value instanceof Integer) {
+            appendByte(buffer, INT32);
+            appendCString(buffer, key);
             appendInt(buffer, (Integer) value);
         } else if (value instanceof Long) {
-            encodeType(buffer, INT64, key);
+            appendByte(buffer, INT64);
+            appendCString(buffer, key);
             appendLong(buffer, (Long) value);
         } else if (value instanceof Key) {
             if (value == Key.MIN) {
-                encodeType(buffer, MINKEY, key);
+                appendByte(buffer, MINKEY);
+                appendCString(buffer, key);
             } else if (value == Key.MAX) {
-                encodeType(buffer, MAXKEY, key);
+                appendByte(buffer, MAXKEY);
+                appendCString(buffer, key);
             } else {
                 throw new RuntimeException("Don't know how to encode: " + value);
             }
+        } else if (value instanceof BSONObject) {
+            appendByte(buffer, EMBEDDED_DOCUMENT);
+            appendCString(buffer, key);
+            buffer.appendBuffer(encode((BSONObject) value));
         } else {
             throw new RuntimeException("Don't know how to encode: " + value);
         }
@@ -183,6 +215,31 @@ final class BSONCodec {
 
         setInt(buffer, 0, buffer.length() + 1);
         appendByte(buffer, (byte) 0x00);
+        return buffer;
+    }
+
+    public static Buffer encode(BSONObject bson) {
+        // find the right compiler
+        List<Encoder> encoders = COMPILERS.get(bson.getClass());
+
+        if (encoders == null) {
+            throw new RuntimeException("Class " + bson.getClass().getName() + " is not registered in the compiler unit");
+        }
+
+        Buffer buffer = new Buffer();
+        // allocate space for the document length
+        appendInt(buffer, 0);
+
+        for (Encoder encoder : encoders) {
+            try {
+                encode(buffer, encoder.name, encoder.field.get(bson));
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        appendByte(buffer, (byte) 0x00);
+        setInt(buffer, 0, buffer.length());
         return buffer;
     }
 
