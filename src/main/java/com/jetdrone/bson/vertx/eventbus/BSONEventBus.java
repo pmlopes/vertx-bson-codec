@@ -74,43 +74,14 @@ public class BSONEventBus {
     private final EventBus eventBus;
     private final Map<Object, Handler<Message<Buffer>>> handlerMap;
 
-    // Generic
-    public BSONEventBus(Object object) {
-        EventBus eventBus = null;
-
-        if (object instanceof org.vertx.java.core.Vertx) {
-            eventBus = ((org.vertx.java.core.Vertx) object).eventBus();
-        }
-
-        if (object instanceof org.vertx.groovy.core.Vertx) {
-            eventBus = (((org.vertx.groovy.core.Vertx) object).toJavaVertx()).eventBus();
-        }
-
-        this.eventBus = eventBus;
-        this.handlerMap = new ConcurrentHashMap<>();
-    }
-
     public BSONEventBus(org.vertx.java.core.Vertx vertx) {
         this.eventBus = vertx.eventBus();
         this.handlerMap = new ConcurrentHashMap<>();
     }
 
-    // Groovy
-    public BSONEventBus(org.vertx.groovy.core.Vertx vertx) {
-        this(vertx.toJavaVertx());
-    }
-
     @SuppressWarnings("unused")
     public void registerLocalHandler(String address, Handler<Message<Map>> handler) {
         Handler<Message<Buffer>> wrapped = wrapHandler(handler);
-        handlerMap.put(handler, wrapped);
-        eventBus.registerLocalHandler(address, wrapped);
-    }
-
-    // Groovy
-    @SuppressWarnings("unused")
-    public void registerLocalHandler(String address, Closure<Void> handler) {
-        Handler<Message<Buffer>> wrapped = wrapClosure(handler);
         handlerMap.put(handler, wrapped);
         eventBus.registerLocalHandler(address, wrapped);
     }
@@ -122,25 +93,8 @@ public class BSONEventBus {
         eventBus.registerHandler(address, wrapped);
     }
 
-    // Groovy
-    @SuppressWarnings("unused")
-    public void registerHandler(String address, Closure<Void> handler) {
-        Handler<Message<Buffer>> wrapped = wrapClosure(handler);
-        handlerMap.put(handler, wrapped);
-        eventBus.registerHandler(address, wrapped);
-    }
-
     @SuppressWarnings("unused")
     public void unregisterHandler(String address, Handler<Message<Map>> handler) {
-        Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
-        if (wrapped != null) {
-            eventBus.unregisterHandler(address, wrapped);
-        }
-    }
-
-    // Groovy
-    @SuppressWarnings("unused")
-    public void unregisterHandler(String address, Closure<Void> handler) {
         Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
         if (wrapped != null) {
             eventBus.unregisterHandler(address, wrapped);
@@ -154,54 +108,17 @@ public class BSONEventBus {
         eventBus.registerHandler(address, wrapped, resultHandler);
     }
 
-    // Groovy
-    @SuppressWarnings("unused")
-    public void registerHandler(String address, Closure<Void> handler, Closure<Void> resultHandler) {
-        Handler<Message<Buffer>> wrapped = wrapClosure(handler);
-        AsyncResultHandler<Void> result = wrapAsyncResultClosure(resultHandler);
-        handlerMap.put(handler, wrapped);
-
-        if (result != null) {
-            eventBus.registerHandler(address, wrapped, result);
-        } else {
-            eventBus.registerHandler(address, wrapped);
-        }
-    }
-
     @SuppressWarnings("unused")
     public void unregisterHandler(String address, Handler<Message<Map>> handler, AsyncResultHandler<Void> resultHandler) {
         Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
-
         if (wrapped != null) {
             eventBus.unregisterHandler(address, wrapped, resultHandler);
         }
     }
 
-    // Groovy
-    @SuppressWarnings("unused")
-    public void unregisterHandler(String address, Closure<Void> handler, Closure<Void> resultHandler) {
-        Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
-        AsyncResultHandler<Void> result = wrapAsyncResultClosure(resultHandler);
-
-        if (wrapped != null) {
-            if (result != null) {
-                eventBus.unregisterHandler(address, wrapped, result);
-            } else {
-                eventBus.unregisterHandler(address, wrapped);
-            }
-        }
-    }
-
     @SuppressWarnings("unused")
     public void send(String address, Map message, Handler<Message<Map>> replyHandler) {
-        Buffer _message = BSONCodec.encode(message);
-        eventBus.send(address, _message, wrapHandler(replyHandler));
-    }
-
-    // Groovy
-    @SuppressWarnings("unused")
-    public void send(String address, Map message, Closure<Void> replyHandler) {
-        eventBus.send(address, BSONCodec.encode(message), wrapClosure(replyHandler));
+        eventBus.send(address, BSONCodec.encode(message), wrapHandler(replyHandler));
     }
 
     /**
@@ -214,6 +131,24 @@ public class BSONEventBus {
     @SuppressWarnings("unused")
     public void send(String address, Map message) {
         eventBus.send(address, BSONCodec.encode(message));
+    }
+
+    /**
+     * Publishes a Message to the EventBus (broadcast)
+     *
+     * @param address The address that will receive this message
+     * @param message The message payload
+     */
+    @SuppressWarnings("unused")
+    public void publish(String address, Map message) {
+        eventBus.publish(address, BSONCodec.encode(message));
+    }
+
+    // BSONObject helpers
+
+    @SuppressWarnings("unused")
+    public void send(String address, BSONObject message, Handler<Message<Map>> replyHandler) {
+        eventBus.send(address, BSONCodec.encode(message), wrapHandler(replyHandler));
     }
 
     /**
@@ -235,18 +170,73 @@ public class BSONEventBus {
      * @param message The message payload
      */
     @SuppressWarnings("unused")
-    public void publish(String address, Map message) {
+    public void publish(String address, BSONObject message) {
         eventBus.publish(address, BSONCodec.encode(message));
     }
 
-    /**
-     * Publishes a Message to the EventBus (broadcast)
-     *
-     * @param address The address that will receive this message
-     * @param message The message payload
-     */
+    // Groovy bindings
+
+    public BSONEventBus(org.vertx.groovy.core.Vertx vertx) {
+        this(vertx.toJavaVertx());
+    }
+
     @SuppressWarnings("unused")
-    public void publish(String address, BSONObject message) {
-        eventBus.publish(address, BSONCodec.encode(message));
+    public void registerLocalHandler(String address, Closure<Void> handler) {
+        Handler<Message<Buffer>> wrapped = wrapClosure(handler);
+        handlerMap.put(handler, wrapped);
+        eventBus.registerLocalHandler(address, wrapped);
+    }
+
+    @SuppressWarnings("unused")
+    public void registerHandler(String address, Closure<Void> handler) {
+        Handler<Message<Buffer>> wrapped = wrapClosure(handler);
+        handlerMap.put(handler, wrapped);
+        eventBus.registerHandler(address, wrapped);
+    }
+
+    @SuppressWarnings("unused")
+    public void unregisterHandler(String address, Closure<Void> handler) {
+        Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
+        if (wrapped != null) {
+            eventBus.unregisterHandler(address, wrapped);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void registerHandler(String address, Closure<Void> handler, Closure<Void> resultHandler) {
+        Handler<Message<Buffer>> wrapped = wrapClosure(handler);
+        AsyncResultHandler<Void> result = wrapAsyncResultClosure(resultHandler);
+        handlerMap.put(handler, wrapped);
+
+        if (result != null) {
+            eventBus.registerHandler(address, wrapped, result);
+        } else {
+            eventBus.registerHandler(address, wrapped);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void unregisterHandler(String address, Closure<Void> handler, Closure<Void> resultHandler) {
+        Handler<Message<Buffer>> wrapped = handlerMap.remove(handler);
+        if (wrapped != null) {
+            AsyncResultHandler<Void> result = wrapAsyncResultClosure(resultHandler);
+            if (result != null) {
+                eventBus.unregisterHandler(address, wrapped, result);
+            } else {
+                eventBus.unregisterHandler(address, wrapped);
+            }
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void send(String address, Map message, Closure<Void> replyHandler) {
+        eventBus.send(address, BSONCodec.encode(message), wrapClosure(replyHandler));
+    }
+
+    // BSONObject helpers
+
+    @SuppressWarnings("unused")
+    public void send(String address, BSONObject message, Closure<Void> replyHandler) {
+        eventBus.send(address, BSONCodec.encode(message), wrapClosure(replyHandler));
     }
 }
