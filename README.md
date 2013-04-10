@@ -70,3 +70,8 @@ In a quick overview all you need is:
 
 The transformation to and from BSON is totally hidden from you. If you used vert.x with JSON encoding BSON will look
 exactly the same. However instead of having specific classes (like it happens for JSON) BSON works with Maps directly.
+
+Support the development of this module
+--------------------------------------
+
+[![Click here to lend your support to: Support com.jetdrone Vert.x modules and make a donation at www.pledgie.com !](http://www.pledgie.com/campaigns/19785.png?skin_name=chrome)](http://www.pledgie.com/campaigns/19785)
