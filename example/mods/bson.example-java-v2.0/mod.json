@@ -1,0 +1,5 @@
+{
+  "main": "App",
+  "includes": "com.jetdrone~mod-bson-io~2.0.0",
+  "worker": false
+}

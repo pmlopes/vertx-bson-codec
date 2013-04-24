@@ -1,6 +1,10 @@
-.idea
-bson.vertx.eventbus.iml
-
-build
-dist
 target
+mods
+.idea
+*.iml
+*.ipr
+*.iws
+.gradle
+.classpath
+.project
+.settings
