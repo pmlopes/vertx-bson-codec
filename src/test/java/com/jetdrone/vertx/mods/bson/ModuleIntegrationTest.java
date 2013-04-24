@@ -23,7 +23,7 @@ public class ModuleIntegrationTest extends TestVerticle {
         eb.registerHandler("bson.times2.handler", new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
-                Map obj = BSON.decode(message.body);
+                Map obj = BSON.decode(message.body());
                 assertEquals(5,  obj.get("value"));
 
                 Map<String, Integer> replyMsg = new HashMap<>();
@@ -39,7 +39,7 @@ public class ModuleIntegrationTest extends TestVerticle {
         eb.send("bson.times2.handler", BSON.encode(msg), new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
-                Map answer = BSON.decode(message.body);
+                Map answer = BSON.decode(message.body());
                 assertEquals(10, answer.get("value"));
                 testComplete();
             }
@@ -54,7 +54,7 @@ public class ModuleIntegrationTest extends TestVerticle {
         eb.registerLocalHandler("bson.local.times2.handler", new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
-                Map obj = BSON.decode(message.body);
+                Map obj = BSON.decode(message.body());
                 assertEquals(5, obj.get("value"));
 
                 Map<String, Integer> replyMsg = new HashMap<>();
@@ -70,7 +70,7 @@ public class ModuleIntegrationTest extends TestVerticle {
         eb.send("bson.local.times2.handler", BSON.encode(msg), new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
-                Map answer = BSON.decode(message.body);
+                Map answer = BSON.decode(message.body());
                 assertEquals(10, answer.get("value"));
                 testComplete();
             }
@@ -85,10 +85,10 @@ public class ModuleIntegrationTest extends TestVerticle {
         eventBus.registerHandler("json.times2.handler", new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> jsonMessage) {
-                assertEquals(5,  (int) jsonMessage.body.getInteger("value"));
+                assertEquals(5,  (int) jsonMessage.body().getInteger("value"));
 
                 JsonObject replyMessage = new JsonObject();
-                replyMessage.putNumber("value", jsonMessage.body.getInteger("value") * 2);
+                replyMessage.putNumber("value", jsonMessage.body().getInteger("value") * 2);
 
                 jsonMessage.reply(replyMessage);
             }
@@ -100,7 +100,7 @@ public class ModuleIntegrationTest extends TestVerticle {
         eventBus.send("json.times2.handler", msg, new Handler<Message<JsonObject>>() {
             @Override
             public void handle(Message<JsonObject> message) {
-                assertEquals(10, message.body.getNumber("value"));
+                assertEquals(10, message.body().getNumber("value"));
                 testComplete();
             }
         });
@@ -119,7 +119,7 @@ public class ModuleIntegrationTest extends TestVerticle {
         eb.registerHandler("bson.BSONObject.handler", new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
-                Map obj = BSON.decode(message.body);
+                Map obj = BSON.decode(message.body());
                 assertEquals(5, obj.get("value"));
                 testComplete();
             }

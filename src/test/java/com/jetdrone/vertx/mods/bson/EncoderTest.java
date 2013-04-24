@@ -1,8 +1,5 @@
 package com.jetdrone.vertx.mods.bson;
 
-import com.jetdrone.vertx.mods.bson.BSONElement;
-import com.jetdrone.vertx.mods.bson.BSONObject;
-import com.jetdrone.vertx.mods.bson.BSON;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -48,7 +45,7 @@ public class EncoderTest {
             Map<String, Object> subjson = new IdentityHashMap<>();
             subjson.put("name", "subJsonMap");
             json.put("subjson", subjson);
-            List array = new ArrayList();
+            List<Object> array = new ArrayList<>();
             array.add("A");
             array.add(1);
             array.add(true);
@@ -65,7 +62,7 @@ public class EncoderTest {
             json.bin = new byte[] {0, 1, 2, 3, 4, 5};
             json.subjson = new TestSubObject();
             json.subjson.name = "subJsonMap";
-            List array = new ArrayList();
+            List<Object> array = new ArrayList<>();
             array.add("A");
             array.add(1);
             array.add(true);
@@ -97,7 +94,7 @@ public class EncoderTest {
         Map<String, Object> subjson = new HashMap<>();
         subjson.put("name", "subJsonMap");
         json.put("subjson", subjson);
-        List array = new ArrayList();
+        List<Object> array = new ArrayList<>();
         array.add("A");
         array.add(1);
         array.add(true);
@@ -111,7 +108,7 @@ public class EncoderTest {
         obj.bin = new byte[] {0, 1, 2, 3, 4, 5};
         obj.subjson = new TestSubObject();
         obj.subjson.name = "subJsonMap";
-        List list = new ArrayList();
+        List<Object> list = new ArrayList<>();
         list.add("A");
         list.add(1);
         list.add(true);
