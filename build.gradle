@@ -70,6 +70,7 @@ Please edit the details below.
  */
 def configurePom(def pom) {
   pom.project {
+    name 'mod-bson-io'
     description 'BSON codec for Vert.x 2.x'
     inceptionYear '2013'
     packaging 'zip'
