@@ -22,14 +22,14 @@ public class App extends Verticle {
                 Map<String, Integer> replyMsg = new HashMap<>();
                 replyMsg.put("value", ((Integer) mapMessage.body.get("value")) * 2);
 
-                mapMessage.reply(BSON.encode(replyMsg));
+                mapMessage.reply(BSON.encodeMap(replyMsg));
             }
         });
 
         Map<String, Integer> msg = new HashMap<>();
         msg.put("value", 5);
 
-        eb.send("bson.times2.handler", BSON.encode(msg), new Handler<Message<Buffer>>() {
+        eb.send("bson.times2.handler", BSON.encodeMap(msg), new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
                 Map obj = BSON.decode(message.body);

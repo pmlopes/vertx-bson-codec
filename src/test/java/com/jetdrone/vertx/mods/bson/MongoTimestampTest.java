@@ -1,6 +1,5 @@
 package com.jetdrone.vertx.mods.bson;
 
-import com.jetdrone.vertx.mods.bson.BSON;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -21,7 +20,7 @@ public class MongoTimestampTest {
         Map<String, Timestamp> json = new HashMap<>();
         json.put("_", new Timestamp(258));
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[] {
                 // length
                 0x10, 0x00, 0x00, 0x00,

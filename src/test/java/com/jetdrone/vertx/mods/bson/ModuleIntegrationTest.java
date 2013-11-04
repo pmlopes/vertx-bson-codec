@@ -29,14 +29,14 @@ public class ModuleIntegrationTest extends TestVerticle {
                 Map<String, Integer> replyMsg = new HashMap<>();
                 replyMsg.put("value", ((Integer) obj.get("value")) * 2);
 
-                message.reply(BSON.encode(replyMsg));
+                message.reply(BSON.encodeMap(replyMsg));
             }
         });
 
         Map<String, Integer> msg = new HashMap<>();
         msg.put("value", 5);
 
-        eb.send("bson.times2.handler", BSON.encode(msg), new Handler<Message<Buffer>>() {
+        eb.send("bson.times2.handler", BSON.encodeMap(msg), new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
                 Map answer = BSON.decode(message.body());
@@ -60,14 +60,14 @@ public class ModuleIntegrationTest extends TestVerticle {
                 Map<String, Integer> replyMsg = new HashMap<>();
                 replyMsg.put("value", ((Integer) obj.get("value")) * 2);
 
-                message.reply(BSON.encode(replyMsg));
+                message.reply(BSON.encodeMap(replyMsg));
             }
         });
 
         Map<String, Integer> msg = new HashMap<>();
         msg.put("value", 5);
 
-        eb.send("bson.local.times2.handler", BSON.encode(msg), new Handler<Message<Buffer>>() {
+        eb.send("bson.local.times2.handler", BSON.encodeMap(msg), new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
                 Map answer = BSON.decode(message.body());
@@ -106,7 +106,7 @@ public class ModuleIntegrationTest extends TestVerticle {
         });
     }
 
-    public static class MyTest implements BSONObject {
+    public static class MyTest {
         @BSONElement
         public int value = 5;
     }
@@ -127,6 +127,6 @@ public class ModuleIntegrationTest extends TestVerticle {
 
         MyTest myTest = new MyTest();
         // by default the initial value is 5 (see above)
-        eb.send("bson.BSONObject.handler", BSON.encode(myTest));
+        eb.send("bson.BSONObject.handler", BSON.encodeObject(myTest));
     }
 }

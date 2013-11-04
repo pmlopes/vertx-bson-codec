@@ -1,6 +1,5 @@
 package com.jetdrone.vertx.mods.bson;
 
-import com.jetdrone.vertx.mods.bson.BSON;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -48,7 +47,7 @@ public class BSONSPECTest {
                 (byte) 0x00
         };
 
-        byte[] bson = BSON.encode(json).getBytes();
+        byte[] bson = BSON.encodeMap(json).getBytes();
 
         assertArrayEquals(expected, bson);
     }
@@ -151,7 +150,7 @@ public class BSONSPECTest {
                 (byte) 0x00
         };
 
-        byte[] bson = BSON.encode(json).getBytes();
+        byte[] bson = BSON.encodeMap(json).getBytes();
 
         assertArrayEquals(expected, bson);
     }

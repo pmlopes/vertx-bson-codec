@@ -1,8 +1,5 @@
 package com.jetdrone.vertx.mods.bson;
 
-import com.jetdrone.vertx.mods.bson.Binary;
-import com.jetdrone.vertx.mods.bson.MD5;
-import com.jetdrone.vertx.mods.bson.BSON;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -20,7 +17,7 @@ public class BinaryTest {
         Map<String, UUID> json = new HashMap<>();
         json.put("_", UUID.fromString("797ff043-11eb-11e1-80d6-510998755d10"));
 
-        byte[] bson = BSON.encode(json).getBytes();
+        byte[] bson = BSON.encodeMap(json).getBytes();
 
         byte[] expected = new byte[]{
                 // length
@@ -47,7 +44,7 @@ public class BinaryTest {
             }
         });
 
-        byte[] bson = BSON.encode(json).getBytes();
+        byte[] bson = BSON.encodeMap(json).getBytes();
 
         byte[] expected = new byte[]{
                 // length
@@ -74,7 +71,7 @@ public class BinaryTest {
             }
         });
 
-        byte[] bson = BSON.encode(json).getBytes();
+        byte[] bson = BSON.encodeMap(json).getBytes();
 
         byte[] expected = new byte[]{
                 // length

@@ -1,7 +1,5 @@
 package com.jetdrone.vertx.mods.bson;
 
-import com.jetdrone.vertx.mods.bson.Key;
-import com.jetdrone.vertx.mods.bson.BSON;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -29,7 +27,7 @@ public class GoBSONTest {
     @Test
     public void testEmptyMap() {
         Map empty = new HashMap();
-        Buffer buffer = BSON.encode(empty);
+        Buffer buffer = BSON.encodeMap(empty);
 
         assertArrayEquals(EMPTY_BSON, buffer.getBytes());
 
@@ -43,7 +41,7 @@ public class GoBSONTest {
         Map<String, Double> json = new HashMap<>();
         json.put("_", 5.05);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x10, 0x0, 0x0, 0x0,
@@ -63,7 +61,7 @@ public class GoBSONTest {
         Map<String, String> json = new HashMap<>();
         json.put("_", "yo");
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x0f, 0x00, 0x00, 0x00,
@@ -84,7 +82,7 @@ public class GoBSONTest {
         subjson.put("a", true);
         json.put("_", subjson);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x11, 0x00, 0x00, 0x00,
@@ -104,7 +102,7 @@ public class GoBSONTest {
         Map<String, Boolean> json = new HashMap<>();
         json.put("_", true);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x09, 0x00, 0x00, 0x00,
@@ -124,7 +122,7 @@ public class GoBSONTest {
         Map<String, Boolean> json = new HashMap<>();
         json.put("_", false);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x09, 0x00, 0x00, 0x00,
@@ -144,7 +142,7 @@ public class GoBSONTest {
         Map<String, Object> json = new HashMap<>();
         json.put("_", null);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x08, 0x00, 0x00, 0x00,
@@ -164,7 +162,7 @@ public class GoBSONTest {
         Map<String, Pattern> json = new HashMap<>();
         json.put("_", Pattern.compile("ab"));
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x0c, 0x00, 0x00, 0x00,
@@ -191,7 +189,7 @@ public class GoBSONTest {
         Map<String, Date> json = new HashMap<>();
         json.put("_", new Date(258));
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x10, 0x00, 0x00, 0x00,
@@ -211,7 +209,7 @@ public class GoBSONTest {
         Map<String, byte[]> json = new HashMap<>();
         json.put("_", new byte[]{'y', 'o'});
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x0f, 0x00, 0x00, 0x00,
@@ -238,7 +236,7 @@ public class GoBSONTest {
         Map<String, Integer> json = new HashMap<>();
         json.put("_", 258);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x0c, 0x00, 0x00, 0x00,
@@ -258,7 +256,7 @@ public class GoBSONTest {
         Map<String, Long> json = new HashMap<>();
         json.put("_", 258l);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x10, 0x00, 0x00, 0x00,
@@ -278,7 +276,7 @@ public class GoBSONTest {
         Map<String, Long> json = new HashMap<>();
         json.put("_", 258l << 32);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x10, 0x00, 0x00, 0x00,
@@ -298,7 +296,7 @@ public class GoBSONTest {
         Map<String, Key> json = new HashMap<>();
         json.put("_", Key.MIN);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x08, 0x00, 0x00, 0x00,
@@ -318,7 +316,7 @@ public class GoBSONTest {
         Map<String, Key> json = new HashMap<>();
         json.put("_", Key.MAX);
 
-        Buffer buffer = BSON.encode(json);
+        Buffer buffer = BSON.encodeMap(json);
         byte[] expected = new byte[]{
                 // length
                 0x08, 0x00, 0x00, 0x00,

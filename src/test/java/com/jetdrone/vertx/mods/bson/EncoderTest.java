@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 
 public class EncoderTest {
 
-    static class TestObject implements BSONObject {
+    static class TestObject {
         @BSONElement
         public String name;
         @BSONElement
@@ -24,17 +24,13 @@ public class EncoderTest {
         public List array;
     }
 
-    static class TestSubObject implements BSONObject {
+    static class TestSubObject {
         @BSONElement
         public String name;
     }
 
     @Test
     public void speedTest() {
-        // prepare
-        BSON.compile(TestObject.class);
-        BSON.compile(TestSubObject.class);
-
         // test normal way
         long t0 = System.nanoTime();
         for (int i = 0; i < 10000; i++) {
@@ -51,7 +47,7 @@ public class EncoderTest {
             array.add(true);
             json.put("array", array);
 
-            BSON.encode(json);
+            BSON.encodeMap(json);
         }
         long t1 = System.nanoTime();
         // test reflection
@@ -68,24 +64,20 @@ public class EncoderTest {
             array.add(true);
             json.array = array;
 
-            BSON.encode(json);
+            BSON.encodeObject(json);
         }
         long t2 = System.nanoTime();
 
-//        // reporting
-//        System.out.println("Map serialization: " + (t1 - t0));
-//        System.out.println("Interface+Annotation serialization: " + (t2 - t1));
-//        System.out.println("Speedup: " + ((double) (t1 - t0)) / ((double) (t2 - t1)));
+        // reporting
+        System.out.println("Map serialization: " + (t1 - t0));
+        System.out.println("Annotation serialization: " + (t2 - t1));
+        System.out.println("Speedup: " + ((double) (t1 - t0)) / ((double) (t2 - t1)));
 
         assertTrue(((double) (t1 - t0)) / ((double) (t2 - t1)) > 1.0);
     }
 
     @Test
     public void validityTest() {
-        // prepare
-        BSON.compile(TestObject.class);
-        BSON.compile(TestSubObject.class);
-
         // test normal way
         Map<String, Object> json = new HashMap<>();
         json.put("name", "jsonMap");
@@ -100,7 +92,7 @@ public class EncoderTest {
         array.add(true);
         json.put("array", array);
 
-        Buffer fromMap = BSON.encode(json);
+        Buffer fromMap = BSON.encodeMap(json);
 
         TestObject obj = new TestObject();
         obj.name = "jsonMap";
@@ -114,7 +106,7 @@ public class EncoderTest {
         list.add(true);
         obj.array = list;
 
-        Buffer fromObj = BSON.encode(obj);
+        Buffer fromObj = BSON.encodeObject(obj);
         assertEquals(fromMap.length(), fromObj.length());
 
         // reverse the encoding back to maps

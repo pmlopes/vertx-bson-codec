@@ -9,16 +9,6 @@ import java.util.regex.Pattern;
 
 public final class BSON {
 
-    private static class Encoder {
-        final String name;
-        final Field field;
-
-        Encoder(Field field) {
-            this.name = field.getName();
-            this.field = field;
-        }
-    }
-
     private static final byte FLOAT = (byte) 0x01;
     private static final byte STRING = (byte) 0x02;
     private static final byte EMBEDDED_DOCUMENT = (byte) 0x03;
@@ -52,19 +42,6 @@ public final class BSON {
     private static final byte MINKEY = (byte) 0xFF;
     private static final byte MAXKEY = (byte) 0x7F;
 
-    private static final Map<Class<? extends BSONObject>, List<Encoder>> COMPILERS = new IdentityHashMap<>();
-
-    public static void compile(Class<? extends BSONObject> clazz) {
-        List<Encoder> encoders = new ArrayList<>();
-        for (Field field : clazz.getFields()) {
-            if (field.isAnnotationPresent(BSONElement.class)) {
-                // TODO: verify the field type for supported types field.getType();
-                encoders.add(new Encoder(field));
-            }
-        }
-        COMPILERS.put(clazz, encoders);
-    }
-
     private static void encode(Buffer buffer, String key, Object value) {
         if (value == null) {
             LE.appendByte(buffer, NULL);
@@ -80,11 +57,11 @@ public final class BSON {
         } else if (value instanceof Map) {
             LE.appendByte(buffer, EMBEDDED_DOCUMENT);
             LE.appendCString(buffer, key);
-            buffer.appendBuffer(encode((Map) value));
+            buffer.appendBuffer(encodeMap((Map) value));
         } else if (value instanceof List) {
             LE.appendByte(buffer, ARRAY);
             LE.appendCString(buffer, key);
-            buffer.appendBuffer(encode((List) value));
+            buffer.appendBuffer(encodeList((List) value));
         } else if (value instanceof UUID) {
             LE.appendByte(buffer, BINARY);
             LE.appendCString(buffer, key);
@@ -177,18 +154,16 @@ public final class BSON {
                 LE.appendByte(buffer, MAXKEY);
                 LE.appendCString(buffer, key);
             } else {
-                throw new RuntimeException("Don't know how to encode: " + value);
+                throw new RuntimeException("Don't know how to encodeObject: " + value);
             }
-        } else if (value instanceof BSONObject) {
+        } else {
             LE.appendByte(buffer, EMBEDDED_DOCUMENT);
             LE.appendCString(buffer, key);
-            buffer.appendBuffer(encode((BSONObject) value));
-        } else {
-            throw new RuntimeException("Don't know how to encode: " + value);
+            buffer.appendBuffer(encodeObject(value));
         }
     }
 
-    public static Buffer encode(Map map) {
+    public static Buffer encodeMap(Map map) {
         Buffer buffer = new Buffer();
         // allocate space for the document length
         LE.appendInt(buffer, 0);
@@ -208,25 +183,20 @@ public final class BSON {
         return buffer;
     }
 
-    public static Buffer encode(BSONObject bson) {
+    public static Buffer encodeObject(Object bson) {
         // find the right compiler
-        List<Encoder> encoders = COMPILERS.get(bson.getClass());
-
-        if (encoders == null) {
-            compile(bson.getClass());
-            encoders = COMPILERS.get(bson.getClass());
-        }
+        Map<String, Field> properties = Compiler.getProperties(bson.getClass());
 
         Buffer buffer = new Buffer();
         // allocate space for the document length
         LE.appendInt(buffer, 0);
 
-        for (Encoder encoder : encoders) {
-            try {
-                encode(buffer, encoder.name, encoder.field.get(bson));
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+        try {
+            for (Map.Entry<String, Field> property : properties.entrySet()) {
+                encode(buffer, property.getKey(), property.getValue().get(bson));
             }
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
 
         LE.appendByte(buffer, (byte) 0x00);
@@ -234,7 +204,7 @@ public final class BSON {
         return buffer;
     }
 
-    private static Buffer encode(List list) {
+    private static Buffer encodeList(List list) {
         Buffer buffer = new Buffer();
         // allocate space for the document length
         LE.appendInt(buffer, 0);
@@ -250,10 +220,10 @@ public final class BSON {
     }
 
     public static Map<String, Object> decode(Buffer buffer) {
-        return decodeDocument(buffer, 0);
+        return decodeMap(buffer, 0);
     }
 
-    private static Map<String, Object> decodeDocument(Buffer buffer, int pos) {
+    private static Map<String, Object> decodeMap(Buffer buffer, int pos) {
 
         // skip the last 0x00
         int length = pos + LE.getInt(buffer, pos) - 1;
@@ -281,7 +251,7 @@ public final class BSON {
                     break;
                 case EMBEDDED_DOCUMENT:
                     int docLen = LE.getInt(buffer, pos);
-                    document.put(key, decodeDocument(buffer, pos));
+                    document.put(key, decodeMap(buffer, pos));
                     pos += docLen;
                     break;
                 case ARRAY:
@@ -439,7 +409,7 @@ public final class BSON {
                     break;
                 case EMBEDDED_DOCUMENT:
                     int docLen = LE.getInt(buffer, pos);
-                    list.add(Integer.parseInt(key), decodeDocument(buffer, pos));
+                    list.add(Integer.parseInt(key), decodeMap(buffer, pos));
                     pos += docLen;
                     break;
                 case ARRAY:
@@ -560,5 +530,164 @@ public final class BSON {
         }
 
         return list;
+    }
+
+    private static Object decodeObject(Class clazz, Buffer buffer, int pos) {
+
+        // skip the last 0x00
+        int length = pos + LE.getInt(buffer, pos) - 1;
+        pos += 4;
+
+        Object document = Compiler.newInstance(clazz);
+
+        while (pos < length) {
+            // get type
+            byte type = LE.getByte(buffer, pos);
+            pos++;
+            String key = LE.getCString(buffer, pos);
+            pos += key.length() + 1;
+
+            switch (type) {
+                case FLOAT:
+                    Compiler.setProperty(document, key, LE.getDouble(buffer, pos));
+                    pos += 8;
+                    break;
+                case STRING:
+                    int utfLength = LE.getInt(buffer, pos);
+                    pos += 4;
+                    Compiler.setProperty(document, key, LE.getString(buffer, pos, utfLength - 1));
+                    pos += utfLength;
+                    break;
+                case EMBEDDED_DOCUMENT:
+                    int docLen = LE.getInt(buffer, pos);
+                    Compiler.setProperty(document, key, decodeObject(Compiler.getProperties(clazz).get(key).getType(), buffer, pos));
+                    pos += docLen;
+                    break;
+                case ARRAY:
+                    int arrLen = LE.getInt(buffer, pos);
+                    Compiler.setProperty(document, key, decodeList(buffer, pos));
+                    pos += arrLen;
+                    break;
+                case BINARY:
+                    int binLen = LE.getInt(buffer, pos);
+                    pos += 4;
+                    byte bintype = LE.getByte(buffer, pos);
+                    pos++;
+                    switch (bintype) {
+                        case BINARY_BINARY:
+                            Compiler.setProperty(document, key, LE.getBytes(buffer, pos, binLen));
+                            pos += binLen;
+                            break;
+                        case BINARY_FUNCTION:
+                            throw new RuntimeException("Not Implemented");
+                        case BINARY_BINARY_OLD:
+                            int oldBinLen = LE.getInt(buffer, pos);
+                            pos += 4;
+                            Compiler.setProperty(document, key, LE.getBytes(buffer, pos, oldBinLen));
+                            pos += binLen;
+                            break;
+                        case BINARY_UUID_OLD:
+                            throw new RuntimeException("Not Implemented");
+                        case BINARY_UUID:
+                            long mostSignificantBits = buffer.getLong(pos);
+                            pos += 8;
+                            long leastSignificantBits = buffer.getLong(pos);
+                            pos += 8;
+                            Compiler.setProperty(document, key, new UUID(mostSignificantBits, leastSignificantBits));
+                            break;
+                        case BINARY_MD5:
+                            final byte[] md5 = LE.getBytes(buffer, pos, binLen);
+                            Compiler.setProperty(document, key, new MD5() {
+                                @Override
+                                public byte[] getHash() {
+                                    return md5;
+                                }
+                            });
+                            pos += binLen;
+                            break;
+                        case BINARY_USERDEFINED:
+                            final byte[] userdef = LE.getBytes(buffer, pos, binLen);
+                            Compiler.setProperty(document, key, new Binary() {
+                                @Override
+                                public byte[] getBytes() {
+                                    return userdef;
+                                }
+                            });
+                            pos += binLen;
+                            break;
+                    }
+                    break;
+                case UNDEFINED:
+                    throw new RuntimeException("Not Implemented");
+                case OBJECT_ID:
+                    Compiler.setProperty(document, key, new ObjectId(LE.getBytes(buffer, pos, 12)));
+                    pos += 12;
+                    break;
+                case BOOLEAN:
+                    Compiler.setProperty(document, key, LE.getBoolean(buffer, pos));
+                    pos++;
+                    break;
+                case UTC_DATETIME:
+                    Compiler.setProperty(document, key, new Date(LE.getLong(buffer, pos)));
+                    pos += 8;
+                    break;
+                case NULL:
+                    Compiler.setProperty(document, key, null);
+                    break;
+                case REGEX:
+                    String regex = LE.getCString(buffer, pos);
+                    pos += regex.length() + 1;
+                    String options = LE.getCString(buffer, pos);
+                    pos += options.length() + 1;
+
+                    int flags = 0;
+                    for (int i = 0; i < options.length(); i++) {
+                        if (options.charAt(i) == 'i') {
+                            flags |= Pattern.CASE_INSENSITIVE;
+                            continue;
+                        }
+                        if (options.charAt(i) == 'm') {
+                            flags |= Pattern.MULTILINE;
+                            continue;
+                        }
+                        if (options.charAt(i) == 's') {
+                            flags |= Pattern.DOTALL;
+                            continue;
+                        }
+                        if (options.charAt(i) == 'u') {
+                            flags |= Pattern.UNICODE_CASE;
+                            continue;
+                        }
+                        // TODO: convert flags to BSON flags x,l
+                    }
+                    Compiler.setProperty(document, key, Pattern.compile(regex, flags));
+                    break;
+                case DBPOINTER:
+                case JSCODE:
+                case SYMBOL:
+                case JSCODE_WS:
+                    throw new RuntimeException("Not Implemented");
+                case INT32:
+                    Compiler.setProperty(document, key, LE.getInt(buffer, pos));
+                    pos += 4;
+                    break;
+                case TIMESTAMP:
+                    Compiler.setProperty(document, key, new Timestamp(LE.getLong(buffer, pos)));
+                    pos += 8;
+                    break;
+                case INT64:
+                    Compiler.setProperty(document, key, LE.getLong(buffer, pos));
+                    pos += 8;
+                    break;
+                case MINKEY:
+                    Compiler.setProperty(document, key, Key.MIN);
+                    break;
+                case MAXKEY:
+                    Compiler.setProperty(document, key, Key.MAX);
+                    break;
+            }
+        }
+
+        return document;
     }
 }
