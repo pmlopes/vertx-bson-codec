@@ -223,6 +223,10 @@ public final class BSON {
         return decodeMap(buffer, 0);
     }
 
+    public static <T> T decodeObject(Class<T> clazz, Buffer buffer) {
+        return (T) decodeObject(clazz, buffer, 0);
+    }
+
     private static Map<String, Object> decodeMap(Buffer buffer, int pos) {
 
         // skip the last 0x00

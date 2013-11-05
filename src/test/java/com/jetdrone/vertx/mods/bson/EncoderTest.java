@@ -121,5 +121,10 @@ public class EncoderTest {
         backFromObj.remove("bin");
         // compare the remaining natives
         assertEquals(backFromMap, backFromObj);
+
+        json.remove("bin");
+        Buffer fromMap2 = BSON.encodeMap(json);
+
+        TestObject backFromObj2 = BSON.decodeObject(TestObject.class, fromMap2);
     }
 }
