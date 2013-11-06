@@ -40,6 +40,10 @@ final class LE {
         buffer.appendBytes(value);
     }
 
+    public static void appendChar(Buffer buffer, char value) {
+        buffer.appendByte((byte) value);
+    }
+
     public static void appendCString(Buffer buffer, String value) {
         byte[] bytes = value.getBytes(Charset.forName("UTF-8"));
         // validate if it is a real C string

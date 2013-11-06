@@ -105,28 +105,4 @@ public class ModuleIntegrationTest extends TestVerticle {
             }
         });
     }
-
-    public static class MyTest {
-        @BSONElement
-        public int value = 5;
-    }
-
-    @Test
-    public void testSimpleBSONObjectHandler() {
-
-        EventBus eb = getVertx().eventBus();
-
-        eb.registerHandler("bson.BSONObject.handler", new Handler<Message<Buffer>>() {
-            @Override
-            public void handle(Message<Buffer> message) {
-                Map obj = BSON.decode(message.body());
-                assertEquals(5, obj.get("value"));
-                testComplete();
-            }
-        });
-
-        MyTest myTest = new MyTest();
-        // by default the initial value is 5 (see above)
-        eb.send("bson.BSONObject.handler", BSON.encodeObject(myTest));
-    }
 }
