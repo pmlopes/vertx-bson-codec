@@ -1,8 +1,7 @@
 package com.jetdrone.vertx.mods.bson;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
+import org.vertx.java.core.buffer.Buffer;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,49 +10,28 @@ import java.util.Map;
 
 class JsonParser {
 
-    private static final int MIN_BUFFER_SIZE = 10;
-    private static final int DEFAULT_BUFFER_SIZE = 1024;
-
-    private final Reader reader;
-    private final char[] buffer;
-    private int bufferOffset;
+    private final Buffer buffer;
     private int index;
-    private int fill;
-    private int line;
-    private int lineOffset;
-    private int current;
-    private StringBuilder captureBuffer;
+    private byte current;
+    private Buffer captureBuffer;
     private int captureStart;
 
-    JsonParser( String string ) {
-        this( new StringReader( string ),
-                Math.max( MIN_BUFFER_SIZE, Math.min( DEFAULT_BUFFER_SIZE, string.length() ) ) );
-    }
-
-    JsonParser( Reader reader ) {
-        this( reader, DEFAULT_BUFFER_SIZE );
-    }
-
-    JsonParser( Reader reader, int buffersize ) {
-        this.reader = reader;
-        buffer = new char[ buffersize ];
-        line = 1;
+    JsonParser(Buffer buffer) {
+        this.buffer = buffer;
         captureStart = -1;
     }
 
-    Object parse() throws IOException {
+    Object parse() {
         read();
         skipWhiteSpace();
         Object result = readValue();
         skipWhiteSpace();
-        if( !isEndOfText() ) {
-            throw error( "Unexpected character" );
-        }
+        isNotEndOfText();
         return result;
     }
 
-    private Object readValue() throws IOException {
-        switch( current ) {
+    private Object readValue() {
+        switch (current) {
             case 'n':
                 return readNull();
             case 't':
@@ -79,104 +57,117 @@ class JsonParser {
             case '9':
                 return readNumber();
             default:
-                throw expected( "value" );
+                isEndOfText();
+                throw new RuntimeException("Expected value");
         }
     }
 
-    private List readArray() throws IOException {
+    private List readArray() {
         read();
-        List array = new ArrayList();
+        List<Object> array = new ArrayList<>();
         skipWhiteSpace();
-        if( readChar( ']' ) ) {
+        if (readByte((byte) ']')) {
             return array;
         }
         do {
             skipWhiteSpace();
-            array.add( readValue() );
+            array.add(readValue());
             skipWhiteSpace();
-        } while( readChar( ',' ) );
-        if( !readChar( ']' ) ) {
-            throw expected( "',' or ']'" );
+        } while (readByte((byte) ','));
+        if (!readByte((byte) ']')) {
+            isEndOfText();
+            throw new RuntimeException("Expected ',' or ']'");
+
         }
         return array;
     }
 
-    private Map readObject() throws IOException {
+    private Map readObject() {
         read();
-        Map object = new HashMap();
+        Map<String, Object> object = new HashMap<>();
         skipWhiteSpace();
-        if( readChar( '}' ) ) {
+        if (readByte((byte) '}')) {
             return object;
         }
         do {
             skipWhiteSpace();
             String name = readName();
             skipWhiteSpace();
-            if( !readChar( ':' ) ) {
-                throw expected( "':'" );
+            if (!readByte((byte) ':')) {
+                isEndOfText();
+                throw new RuntimeException("Expected ':'");
+
             }
             skipWhiteSpace();
-            object.put( name, readValue() );
+            object.put(name, readValue());
             skipWhiteSpace();
-        } while( readChar( ',' ) );
-        if( !readChar( '}' ) ) {
-            throw expected( "',' or '}'" );
+        } while (readByte((byte) ','));
+        if (!readByte((byte) '}')) {
+            isEndOfText();
+            throw new RuntimeException("Expected ',' or '}'");
+
         }
         return object;
     }
 
-    private String readName() throws IOException {
-        if( current != '"' ) {
-            throw expected( "name" );
+    private String readName() {
+        if (current != '"') {
+            isEndOfText();
+            throw new RuntimeException("Expected name");
+
         }
         return readStringInternal();
     }
 
-    private Object readNull() throws IOException {
+    private Object readNull() {
         read();
-        readRequiredChar( 'u' );
-        readRequiredChar( 'l' );
-        readRequiredChar( 'l' );
+        readRequiredByte((byte) 'u');
+        readRequiredByte((byte) 'l');
+        readRequiredByte((byte) 'l');
         return null;
     }
 
-    private Object readTrue() throws IOException {
+    private Object readTrue() {
         read();
-        readRequiredChar( 'r' );
-        readRequiredChar( 'u' );
-        readRequiredChar( 'e' );
+        readRequiredByte((byte) 'r');
+        readRequiredByte((byte) 'u');
+        readRequiredByte((byte) 'e');
         return true;
     }
 
-    private Object readFalse() throws IOException {
+    private Object readFalse() {
         read();
-        readRequiredChar( 'a' );
-        readRequiredChar( 'l' );
-        readRequiredChar( 's' );
-        readRequiredChar( 'e' );
+        readRequiredByte((byte) 'a');
+        readRequiredByte((byte) 'l');
+        readRequiredByte((byte) 's');
+        readRequiredByte((byte) 'e');
         return false;
     }
 
-    private void readRequiredChar( char ch ) throws IOException {
-        if( !readChar( ch ) ) {
-            throw expected( "'" + ch + "'" );
+    private void readRequiredByte(byte ch) {
+        if (!readByte(ch)) {
+            isEndOfText();
+            throw new RuntimeException("Expected '" + ch + "'");
+
         }
     }
 
-    private Object readString() throws IOException {
+    private Object readString() {
         return readStringInternal();
     }
 
-    private String readStringInternal() throws IOException {
+    private String readStringInternal() {
         read();
         startCapture();
-        while( current != '"' ) {
-            if( current == '\\' ) {
+        while (current != '"') {
+            if (current == '\\') {
                 pauseCapture();
                 readEscape();
                 startCapture();
-            } else if( current < 0x20 ) {
-                throw expected( "valid string character" );
+            } else if (current < 0x20) {
+                isEndOfText();
+                throw new RuntimeException("Expected valid string character");
+
             } else {
                 read();
             }
@@ -186,175 +177,161 @@ class JsonParser {
         return string;
     }
 
-    private void readEscape() throws IOException {
+    private void readEscape() {
         read();
-        switch( current ) {
+        switch (current) {
             case '"':
             case '/':
             case '\\':
-                captureBuffer.append( (char)current );
+                captureBuffer.appendByte((byte) current);
                 break;
             case 'b':
-                captureBuffer.append( '\b' );
+                captureBuffer.appendByte((byte) '\b');
                 break;
             case 'f':
-                captureBuffer.append( '\f' );
+                captureBuffer.appendByte((byte) '\f');
                 break;
             case 'n':
-                captureBuffer.append( '\n' );
+                captureBuffer.appendByte((byte) '\n');
                 break;
             case 'r':
-                captureBuffer.append( '\r' );
+                captureBuffer.appendByte((byte) '\r');
                 break;
             case 't':
-                captureBuffer.append( '\t' );
+                captureBuffer.appendByte((byte) '\t');
                 break;
             case 'u':
-                char[] hexChars = new char[4];
-                for( int i = 0; i < 4; i++ ) {
+                int hex = 0;
+                for (int i = 0; i < 4; i++) {
                     read();
-                    if( !isHexDigit() ) {
-                        throw expected( "hexadecimal digit" );
+                    if (!isHexDigit()) {
+                        isEndOfText();
+                        throw new RuntimeException("Expected hexadecimal digit");
+
                     }
-                    hexChars[i] = (char)current;
+                    hex = hex << 4 | getHexDigit(current);
                 }
-                captureBuffer.append( (char)Integer.parseInt( String.valueOf( hexChars ), 16 ) );
+                char unicode = (char) hex;
+                captureBuffer.appendString(new String(new char[] {unicode}));
                 break;
             default:
-                throw expected( "valid escape sequence" );
+                isEndOfText();
+                throw new RuntimeException("Expected valid escape sequence");
+
         }
         read();
     }
 
-    private Object readNumber() throws IOException {
+    private Object readNumber() {
         startCapture();
-        readChar( '-' );
+        readByte((byte) '-');
         int firstDigit = current;
-        if( !readDigit() ) {
-            throw expected( "digit" );
+        if (!readDigit()) {
+            isEndOfText();
+            throw new RuntimeException("Expected digit");
+
         }
-        if( firstDigit != '0' ) {
-            while( readDigit() ) {
+        if (firstDigit != '0') {
+            while (readDigit()) {
             }
         }
-        readFraction();
-        readExponent();
-        // TODO: if no fraction/exp then use Long
-        return new Double( endCapture() );
+        boolean frac = readFraction();
+        boolean exp = readExponent();
+
+        if (!frac && !exp) {
+            return new Long(endCapture());
+        } else {
+            return new Double(endCapture());
+        }
     }
 
-    private boolean readFraction() throws IOException {
-        if( !readChar( '.' ) ) {
+    private boolean readFraction() {
+        if (!readByte((byte) '.')) {
             return false;
         }
-        if( !readDigit() ) {
-            throw expected( "digit" );
+        if (!readDigit()) {
+            isEndOfText();
+            throw new RuntimeException("Expected digit");
+
         }
-        while( readDigit() ) {
+        while (readDigit()) {
         }
         return true;
     }
 
-    private boolean readExponent() throws IOException {
-        if( !readChar( 'e' ) && !readChar( 'E' ) ) {
+    private boolean readExponent() {
+        if (!readByte((byte) 'e') && !readByte((byte) 'E')) {
             return false;
         }
-        if( !readChar( '+' ) ) {
-            readChar( '-' );
+        if (!readByte((byte) '+')) {
+            readByte((byte) '-');
         }
-        if( !readDigit() ) {
-            throw expected( "digit" );
+        if (!readDigit()) {
+            isEndOfText();
+            throw new RuntimeException("Expected digit");
+
         }
-        while( readDigit() ) {
+        while (readDigit()) {
         }
         return true;
     }
 
-    private boolean readChar( char ch ) throws IOException {
-        if( current != ch ) {
+    private boolean readByte(byte ch) {
+        if (current != ch) {
             return false;
         }
         read();
         return true;
     }
 
-    private boolean readDigit() throws IOException {
-        if( !isDigit() ) {
+    private boolean readDigit() {
+        if (!isDigit()) {
             return false;
         }
         read();
         return true;
     }
 
-    private void skipWhiteSpace() throws IOException {
-        while( isWhiteSpace() ) {
+    private void skipWhiteSpace() {
+        while (isWhiteSpace()) {
             read();
         }
     }
 
-    private void read() throws IOException {
-        if( isEndOfText() ) {
-            throw error( "Unexpected end of input" );
+    private void read() {
+        isEndOfText();
+        if (index == buffer.length()) {
+            current = -1;
+            return;
         }
-        if( index == fill ) {
-            if( captureStart != -1 ) {
-                captureBuffer.append( buffer, captureStart, fill - captureStart );
-                captureStart = 0;
-            }
-            bufferOffset += fill;
-            fill = reader.read( buffer, 0, buffer.length );
-            index = 0;
-            if( fill == -1 ) {
-                current = -1;
-                return;
-            }
-        }
-        if( current == '\n' ) {
-            line++;
-            lineOffset = bufferOffset + index;
-        }
-        current = buffer[index++];
+        current = buffer.getByte(index++);
     }
 
     private void startCapture() {
-        if( captureBuffer == null ) {
-            captureBuffer = new StringBuilder();
+        if (captureBuffer == null) {
+            captureBuffer = new Buffer();
         }
         captureStart = index - 1;
     }
 
     private void pauseCapture() {
         int end = current == -1 ? index : index - 1;
-        captureBuffer.append( buffer, captureStart, end - captureStart );
+        captureBuffer.appendBuffer(buffer.getBuffer(captureStart, end));
         captureStart = -1;
     }
 
     private String endCapture() {
         int end = current == -1 ? index : index - 1;
         String captured;
-        if( captureBuffer.length() > 0 ) {
-            captureBuffer.append( buffer, captureStart, end - captureStart );
+        if (captureBuffer.length() > 0) {
+            captureBuffer.appendBuffer(buffer.getBuffer(captureStart, end));
             captured = captureBuffer.toString();
-            captureBuffer.setLength( 0 );
+            captureBuffer = new Buffer();
         } else {
-            captured = new String( buffer, captureStart, end - captureStart );
+            captured = buffer.getString(captureStart, end);
         }
         captureStart = -1;
         return captured;
-    }
-
-    private RuntimeException expected( String expected ) {
-        if( isEndOfText() ) {
-            return error( "Unexpected end of input" );
-        }
-        return error( "Expected " + expected );
-    }
-
-    private RuntimeException error( String message ) {
-        int absIndex = bufferOffset + index;
-        int column = absIndex - lineOffset;
-        int offset = isEndOfText() ? absIndex : absIndex - 1;
-        return new RuntimeException( message/*,  offset, line, column - 1*/ );
     }
 
     private boolean isWhiteSpace() {
@@ -371,8 +348,29 @@ class JsonParser {
                 || current >= 'A' && current <= 'F';
     }
 
-    private boolean isEndOfText() {
-        return current == -1;
+    private int getHexDigit(int ch) {
+        if (ch >= '0' && ch <= '9') {
+            return ch - '0';
+        }
+        if (ch >= 'a' && ch <= 'f') {
+            return 10 + ch - 'a';
+        }
+        if (ch >= 'A' && ch <= 'F') {
+            return 10 + ch - 'A';
+        }
+
+        throw new RuntimeException("Expected hex character '" + (char) ch + "'");
     }
 
+    private void isEndOfText() {
+        if (current == -1) {
+            throw new RuntimeException("Unexpected end of input");
+        }
+    }
+
+    private void isNotEndOfText() {
+        if (current != -1) {
+            throw new RuntimeException("Unexpected end of input");
+        }
+    }
 }

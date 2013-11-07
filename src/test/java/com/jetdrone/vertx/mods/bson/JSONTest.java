@@ -45,7 +45,7 @@ public class JSONTest {
         numbers.add(3);
         numbers.add(4);
 
-        String encoded = JSON.encodeList(numbers).toString();
+        String encoded = JSON.encode(numbers).toString();
         assertEquals("[1,2,3,4]", encoded);
     }
 

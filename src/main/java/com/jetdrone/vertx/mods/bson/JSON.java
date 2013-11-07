@@ -8,16 +8,17 @@ public class JSON {
 
     private static final byte[] NULL = new byte[]{'n', 'u', 'l', 'l'};
 
-    public static Buffer encodeList(List list) {
+    public static Buffer encode(List list) {
         return encodeList(new Buffer(), list);
     }
 
-    public static Buffer encodeMap(Map map) {
+    public static Buffer encode(Map map) {
         return encodeMap(new Buffer(), map);
     }
 
     public static <T> T decode(Buffer buffer) {
-        return (T) decodeValue(buffer, new int[] {0});
+        JsonParser parser = new JsonParser(buffer);
+        return (T) parser.parse();
     }
 
     private static Buffer encodeList(Buffer buffer, List list) {
@@ -91,101 +92,5 @@ public class JSON {
                 encodeList(buffer, (List) value);
             }
         }
-    }
-
-    private static List decodeList(Buffer buffer, int[] pos) {
-        List array = new ArrayList();
-        return array;
-    }
-
-    private static Map decodeMap(Buffer buffer, int[] pos) {
-        Map object = new HashMap();
-        return object;
-    }
-
-    private static String decodeString(Buffer buffer, int[] pos) {
-        // start
-        pos[0]++;
-        // placeholder
-        StringBuilder sb = new StringBuilder();
-        // temp
-        byte b;
-
-        while ((b = buffer.getByte(pos[0])) != '"') {
-            if (b == '\\') {
-                // read escape
-                b = buffer.getByte(++pos[0]);
-                switch (b) {
-                    case '"': sb.append('"'); break;
-                    case '/': sb.append('/'); break;
-                    case '\\': sb.append('\\'); break;
-                    case 'b': sb.append('\b'); break;
-                    case 'f': sb.append('\f'); break;
-                    case 'n': sb.append('\n'); break;
-                    case 'r': sb.append('\r'); break;
-                    case 't': sb.append('\t'); break;
-                    case 'u':
-                        // TODO: read 4 hex digits
-                        break;
-                    default:
-                        throw new RuntimeException("Unknown escape sequence: " + (char) b);
-                }
-            } else {
-                sb.append((char) b);
-            }
-            pos[0]++;
-        }
-
-        return sb.toString();
-    }
-
-    private static Object decodeValue(Buffer buffer, int[] pos) {
-        byte b = buffer.getByte(pos[0]);
-        // skip while spaces
-        while (b == ' ' || b == '\t' || b == '\n' || b == '\b' || b == '\f' || b == '\r' || b == '\0') {
-            b = buffer.getByte(++pos[0]);
-        }
-        // identify the type
-        if (b == 'n') {
-            // should be null
-            if (buffer.getByte(++pos[0]) == 'u' && buffer.getByte(++pos[0]) == 'l' && buffer.getByte(++pos[0]) == 'l') {
-                // we were correct
-                return null;
-            } else {
-                throw new RuntimeException("Invalid JSON: " + buffer.toString());
-            }
-        }
-        if (b == 't') {
-            // should be true
-            if (buffer.getByte(++pos[0]) == 'r' && buffer.getByte(++pos[0]) == 'u' && buffer.getByte(++pos[0]) == 'e') {
-                // we were correct
-                return true;
-            } else {
-                throw new RuntimeException("Invalid JSON: " + buffer.toString());
-            }
-        }
-        if (b == 'f') {
-            // should be false
-            if (buffer.getByte(++pos[0]) == 'a' && buffer.getByte(++pos[0]) == 'l' && buffer.getByte(++pos[0]) == 's' && buffer.getByte(++pos[0]) == 'e') {
-                // we were correct
-                return false;
-            } else {
-                throw new RuntimeException("Invalid JSON: " + buffer.toString());
-            }
-        }
-        // +/-/digit -> number
-        // " -> string
-        if (b == '"') {
-            // should be string
-            return decodeString(buffer, pos);
-        }
-        if (b == '[') {
-            return decodeList(buffer, pos);
-        }
-        if (b == '{') {
-            return decodeMap(buffer, pos);
-        }
-
-        throw new RuntimeException("Invalid JSON: " + buffer.toString());
     }
 }
