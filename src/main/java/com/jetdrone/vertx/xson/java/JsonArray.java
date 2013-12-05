@@ -1,6 +1,5 @@
 package com.jetdrone.vertx.xson.java;
 
-import com.jetdrone.vertx.xson.core.*;
 import org.vertx.java.core.json.DecodeException;
 import org.vertx.java.core.json.impl.Base64;
 
@@ -63,9 +62,8 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
         return this;
     }
 
-    // basic json types
-
-    public boolean getBoolean(int index) {
+    @Override
+    public boolean getBoolean(Integer index) {
         Boolean value = (Boolean) super.get(index);
         if (value == null) {
             return false;
@@ -74,7 +72,8 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
         return value;
     }
 
-    public Number getNumber(int index) {
+    @Override
+    public Number getNumber(Integer index) {
         Number value = (Number) super.get(index);
         if (value == null) {
             return null;
@@ -83,7 +82,8 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
         return value;
     }
 
-    public String getString(int index) {
+    @Override
+    public String getString(Integer index) {
         String value = (String) super.get(index);
         if (value == null) {
             return null;
@@ -93,7 +93,8 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
     }
 
     @SuppressWarnings("unchecked")
-    public JsonArray getArray(int index) {
+    @Override
+    public JsonArray getArray(Integer index) {
         List<?> value = (List<?>) super.get(index);
         if (value == null) {
             return null;
@@ -107,7 +108,8 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
     }
 
     @SuppressWarnings("unchecked")
-    public JsonObject getObject(int index) {
+    @Override
+    public JsonObject getObject(Integer index) {
         Map<String, ?> value = (Map<String, ?>) super.get(index);
         if (value == null) {
             return null;
@@ -120,9 +122,8 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
         return new JsonObject(value);
     }
 
-    // extension
-
-    public byte[] getBinary(int index) {
+    @Override
+    public byte[] getBinary(Integer index) {
         Object value = super.get(index);
         if (value != null) {
             if (value instanceof String) {
@@ -139,7 +140,8 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
         return null;
     }
 
-    public Date getDate(int index) {
+    @Override
+    public Date getDate(Integer index) {
         Object value = super.get(index);
         if (value != null) {
             if (value instanceof String) {

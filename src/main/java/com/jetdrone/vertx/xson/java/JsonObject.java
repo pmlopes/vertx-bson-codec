@@ -53,8 +53,7 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
         throw new ClassCastException();
     }
 
-    // basic json types
-
+    @Override
     public boolean getBoolean(String key) {
         Boolean value = (Boolean) super.get(key);
         if (value == null) {
@@ -64,6 +63,7 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
         return value;
     }
 
+    @Override
     public Number getNumber(String key) {
         Number value = (Number) super.get(key);
         if (value == null) {
@@ -73,6 +73,7 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
         return value;
     }
 
+    @Override
     public String getString(String key) {
         String value = (String) super.get(key);
         if (value == null) {
@@ -82,6 +83,7 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
         return value;
     }
 
+    @Override
     public JsonArray getArray(String key) {
         List<?> value = (List<?>) super.get(key);
         if (value == null) {
@@ -96,6 +98,7 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
     }
 
     @SuppressWarnings("unchecked")
+    @Override
     public JsonObject getObject(String key) {
         Map<String, ?> value = (Map<String, ?>) super.get(key);
         if (value == null) {
@@ -109,8 +112,7 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
         return new JsonObject(value);
     }
 
-    // extension
-
+    @Override
     public byte[] getBinary(String key) {
         Object value = super.get(key);
         if (value != null) {
@@ -128,6 +130,7 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
         return null;
     }
 
+    @Override
     public Date getDate(String key) {
         Object value = super.get(key);
         if (value != null) {
