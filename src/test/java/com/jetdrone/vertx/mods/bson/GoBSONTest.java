@@ -28,7 +28,7 @@ public class GoBSONTest {
 
     @Test
     public void testEmptyMap() {
-        Map empty = new HashMap();
+        Map<String, ?> empty = new HashMap<>();
         Buffer buffer = BSON.encode(empty);
 
         assertArrayEquals(EMPTY_BSON, buffer.getBytes());
