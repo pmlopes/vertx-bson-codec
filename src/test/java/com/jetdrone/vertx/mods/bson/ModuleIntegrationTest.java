@@ -1,5 +1,6 @@
 package com.jetdrone.vertx.mods.bson;
 
+import com.jetdrone.vertx.xson.java.BSON;
 import org.junit.Test;
 import org.vertx.java.core.Handler;
 import org.vertx.java.core.buffer.Buffer;
@@ -29,14 +30,14 @@ public class ModuleIntegrationTest extends TestVerticle {
                 Map<String, Integer> replyMsg = new HashMap<>();
                 replyMsg.put("value", ((Integer) obj.get("value")) * 2);
 
-                message.reply(BSON.encodeMap(replyMsg));
+                message.reply(BSON.encode(replyMsg));
             }
         });
 
         Map<String, Integer> msg = new HashMap<>();
         msg.put("value", 5);
 
-        eb.send("bson.times2.handler", BSON.encodeMap(msg), new Handler<Message<Buffer>>() {
+        eb.send("bson.times2.handler", BSON.encode(msg), new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
                 Map answer = BSON.decode(message.body());
@@ -60,14 +61,14 @@ public class ModuleIntegrationTest extends TestVerticle {
                 Map<String, Integer> replyMsg = new HashMap<>();
                 replyMsg.put("value", ((Integer) obj.get("value")) * 2);
 
-                message.reply(BSON.encodeMap(replyMsg));
+                message.reply(BSON.encode(replyMsg));
             }
         });
 
         Map<String, Integer> msg = new HashMap<>();
         msg.put("value", 5);
 
-        eb.send("bson.local.times2.handler", BSON.encodeMap(msg), new Handler<Message<Buffer>>() {
+        eb.send("bson.local.times2.handler", BSON.encode(msg), new Handler<Message<Buffer>>() {
             @Override
             public void handle(Message<Buffer> message) {
                 Map answer = BSON.decode(message.body());

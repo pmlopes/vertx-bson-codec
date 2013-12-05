@@ -1,5 +1,7 @@
 package com.jetdrone.vertx.mods.bson;
 
+import com.jetdrone.vertx.xson.java.BSON;
+import com.jetdrone.vertx.xson.java.MD5;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -17,7 +19,7 @@ public class BinaryTest {
         Map<String, UUID> json = new HashMap<>();
         json.put("_", UUID.fromString("797ff043-11eb-11e1-80d6-510998755d10"));
 
-        byte[] bson = BSON.encodeMap(json).getBytes();
+        byte[] bson = BSON.encode(json).getBytes();
 
         byte[] expected = new byte[]{
                 // length
@@ -37,14 +39,10 @@ public class BinaryTest {
 
     @Test
     public void testUserDefinedBinary() {
-        Map<String, Binary> json = new HashMap<>();
-        json.put("_", new Binary() {
-            public byte[] getBytes() {
-                return "udef".getBytes();
-            }
-        });
+        Map<String, Buffer> json = new HashMap<>();
+        json.put("_", new Buffer("udef"));
 
-        byte[] bson = BSON.encodeMap(json).getBytes();
+        byte[] bson = BSON.encode(json).getBytes();
 
         byte[] expected = new byte[]{
                 // length
@@ -59,7 +57,7 @@ public class BinaryTest {
 
         // reverse
         Map document = BSON.decode(new Buffer(expected));
-        assertArrayEquals(new byte[]{'u', 'd', 'e', 'f'}, ((Binary) document.get("_")).getBytes());
+        assertArrayEquals(new byte[]{'u', 'd', 'e', 'f'}, ((Buffer) document.get("_")).getBytes());
     }
 
     @Test
@@ -71,7 +69,7 @@ public class BinaryTest {
             }
         });
 
-        byte[] bson = BSON.encodeMap(json).getBytes();
+        byte[] bson = BSON.encode(json).getBytes();
 
         byte[] expected = new byte[]{
                 // length

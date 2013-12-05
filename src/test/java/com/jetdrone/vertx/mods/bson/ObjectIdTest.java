@@ -1,6 +1,6 @@
 package com.jetdrone.vertx.mods.bson;
 
-import com.jetdrone.vertx.mods.bson.ObjectId;
+import com.jetdrone.vertx.xson.java.ObjectId;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

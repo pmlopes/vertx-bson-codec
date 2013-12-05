@@ -1,10 +1,14 @@
-package com.jetdrone.vertx.mods.bson;
+package com.jetdrone.vertx.xson.core.impl;
 
 import org.vertx.java.core.buffer.Buffer;
+import org.vertx.java.core.json.DecodeException;
+import org.vertx.java.core.json.EncodeException;
 
 import java.nio.charset.Charset;
 
-final class LE {
+public final class LE {
+
+    private static final Charset UTF8 = Charset.forName("UTF-8");
 
     public static void appendBoolean(Buffer buffer, boolean value) {
         buffer.appendByte(value ? (byte) 0x01 : (byte) 0x00);
@@ -45,11 +49,11 @@ final class LE {
     }
 
     public static void appendCString(Buffer buffer, String value) {
-        byte[] bytes = value.getBytes(Charset.forName("UTF-8"));
+        byte[] bytes = value.getBytes(UTF8);
         // validate if it is a real C string
         for (byte aByte : bytes) {
             if (aByte == '\0') {
-                throw new RuntimeException("Key: '" + value + "' is not a CString");
+                throw new EncodeException("Key: '" + value + "' is not a CString");
             }
         }
         buffer.appendBytes(bytes);
@@ -58,7 +62,7 @@ final class LE {
 
     // TODO: this is wrong i am mixing BSON encoding with generic LE encoding
     public static void appendString(Buffer buffer, String value) {
-        byte[] bytes = value.getBytes(Charset.forName("UTF-8"));
+        byte[] bytes = value.getBytes(UTF8);
         appendInt(buffer, bytes.length + 1);
         buffer.appendBytes(bytes);
         buffer.appendByte((byte) 0x00);
@@ -102,7 +106,7 @@ final class LE {
         if (b == (byte) 0x01) {
             return true;
         }
-        throw new RuntimeException((int) b + " is not a valid boolean value");
+        throw new DecodeException((int) b + " is not a valid boolean value");
     }
 
     public static byte getByte(Buffer buffer, int pos) {

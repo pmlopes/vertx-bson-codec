@@ -1,4 +1,4 @@
-package com.jetdrone.vertx.mods.bson;
+package com.jetdrone.vertx.xson.java;
 
 /**
  * BSON Min/Max Key do not know if will keep for now is here for reference implementation.

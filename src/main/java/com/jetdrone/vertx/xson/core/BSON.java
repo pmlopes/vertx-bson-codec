@@ -1,12 +1,19 @@
-package com.jetdrone.vertx.mods.bson;
+package com.jetdrone.vertx.xson.core;
+
+import com.jetdrone.vertx.xson.core.impl.LE;
+import com.jetdrone.vertx.xson.java.Key;
+import com.jetdrone.vertx.xson.java.MD5;
+import com.jetdrone.vertx.xson.java.ObjectId;
 
 import org.vertx.java.core.buffer.Buffer;
+import org.vertx.java.core.json.DecodeException;
+import org.vertx.java.core.json.EncodeException;
 
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public final class BSON {
+public abstract class BSON {
 
     private static final byte FLOAT = (byte) 0x01;
     private static final byte STRING = (byte) 0x02;
@@ -41,6 +48,54 @@ public final class BSON {
     private static final byte MINKEY = (byte) 0xFF;
     private static final byte MAXKEY = (byte) 0x7F;
 
+    public static void addSerializer(final Object serializer) {
+        // Serialize Custom Types
+        throw new RuntimeException("Not Implemented!");
+    }
+
+    public static Buffer encode(Map jsObject) {
+        Buffer buffer = new Buffer();
+        // allocate space for the document length
+        LE.appendInt(buffer, 0);
+
+        for (Object entry : jsObject.entrySet()) {
+            Map.Entry entrySet = (Map.Entry) entry;
+            Object key = entrySet.getKey();
+            if (!(key instanceof String)) {
+                throw new EncodeException("BSON only allows CString as key");
+            }
+            Object value = entrySet.getValue();
+            encode(buffer, (String) key, value);
+        }
+
+        LE.setInt(buffer, 0, buffer.length() + 1);
+        LE.appendByte(buffer, (byte) 0x00);
+        return buffer;
+    }
+
+    // While JSON allows both Object or Array as top level object, BSON only allows Object
+    private static Buffer encode(List list) {
+        Buffer buffer = new Buffer();
+        // allocate space for the document length
+        LE.appendInt(buffer, 0);
+
+        for (int i = 0; i < list.size(); i++) {
+            Object value = list.get(i);
+            encode(buffer, String.valueOf(i), value);
+        }
+
+        LE.setInt(buffer, 0, buffer.length() + 1);
+        LE.appendByte(buffer, (byte) 0x00);
+        return buffer;
+    }
+
+    public static Map<String, Object> decode(Buffer source) {
+        if (source == null) {
+            return null;
+        }
+        return decodeMap(source, 0);
+    }
+
     private static void encode(Buffer buffer, String key, Object value) {
         if (value == null) {
             LE.appendByte(buffer, NULL);
@@ -56,11 +111,11 @@ public final class BSON {
         } else if (value instanceof Map) {
             LE.appendByte(buffer, EMBEDDED_DOCUMENT);
             LE.appendCString(buffer, key);
-            buffer.appendBuffer(encodeMap((Map) value));
+            buffer.appendBuffer(encode((Map) value));
         } else if (value instanceof List) {
             LE.appendByte(buffer, ARRAY);
             LE.appendCString(buffer, key);
-            buffer.appendBuffer(encodeList((List) value));
+            buffer.appendBuffer(encode((List) value));
         } else if (value instanceof UUID) {
             LE.appendByte(buffer, BINARY);
             LE.appendCString(buffer, key);
@@ -80,15 +135,14 @@ public final class BSON {
             LE.appendByte(buffer, BINARY_BINARY);
             // append data
             LE.appendBytes(buffer, data);
-        } else if (value instanceof Binary) {
+        } else if (value instanceof Buffer) {
             LE.appendByte(buffer, BINARY);
             LE.appendCString(buffer, key);
             // append length
-            byte[] data = ((Binary) value).getBytes();
-            LE.appendInt(buffer, data.length);
+            LE.appendInt(buffer, ((Buffer) value).length());
             LE.appendByte(buffer, BINARY_USERDEFINED);
             // append data
-            LE.appendBytes(buffer, data);
+            buffer.appendBuffer((Buffer) value);
         } else if (value instanceof MD5) {
             LE.appendByte(buffer, BINARY);
             LE.appendCString(buffer, key);
@@ -135,7 +189,12 @@ public final class BSON {
             if ((iFlags & Pattern.UNICODE_CASE) == Pattern.UNICODE_CASE) {
                 flags.append('u');
             }
-            // TODO: convert flags to BSON flags x,l
+            if ((iFlags & Pattern.COMMENTS) == Pattern.COMMENTS) {
+                flags.append('x');
+            }
+            if ((iFlags & Pattern.UNICODE_CHARACTER_CLASS) == Pattern.UNICODE_CHARACTER_CLASS) {
+                flags.append('l');
+            }
             LE.appendCString(buffer, flags.toString());
         } else if (value instanceof Integer) {
             LE.appendByte(buffer, INT32);
@@ -153,50 +212,12 @@ public final class BSON {
                 LE.appendByte(buffer, MAXKEY);
                 LE.appendCString(buffer, key);
             } else {
-                throw new RuntimeException("Don't know how to encodeObject: " + value);
+                throw new EncodeException("Don't know how to encodeObject: " + value);
             }
         } else {
-            throw new RuntimeException("Don't know how to encode: " + value.getClass().getName());
+            // TODO: JSON.js does not throw exception but ignores the value, should we do the same?
+            throw new EncodeException("Don't know how to encode: " + value.getClass().getName());
         }
-    }
-
-    public static Buffer encodeMap(Map map) {
-        Buffer buffer = new Buffer();
-        // allocate space for the document length
-        LE.appendInt(buffer, 0);
-
-        for (Object entry : map.entrySet()) {
-            Map.Entry entrySet = (Map.Entry) entry;
-            Object key = entrySet.getKey();
-            if (!(key instanceof String)) {
-                throw new RuntimeException("BSON only allows CString as key");
-            }
-            Object value = entrySet.getValue();
-            encode(buffer, (String) key, value);
-        }
-
-        LE.setInt(buffer, 0, buffer.length() + 1);
-        LE.appendByte(buffer, (byte) 0x00);
-        return buffer;
-    }
-
-    private static Buffer encodeList(List list) {
-        Buffer buffer = new Buffer();
-        // allocate space for the document length
-        LE.appendInt(buffer, 0);
-
-        for (int i = 0; i < list.size(); i++) {
-            Object value = list.get(i);
-            encode(buffer, String.valueOf(i), value);
-        }
-
-        LE.setInt(buffer, 0, buffer.length() + 1);
-        LE.appendByte(buffer, (byte) 0x00);
-        return buffer;
-    }
-
-    public static Map<String, Object> decode(Buffer buffer) {
-        return decodeMap(buffer, 0);
     }
 
     private static Map<String, Object> decodeMap(Buffer buffer, int pos) {
@@ -246,7 +267,7 @@ public final class BSON {
                             pos += binLen;
                             break;
                         case BINARY_FUNCTION:
-                            throw new RuntimeException("Not Implemented");
+                            throw new DecodeException("Not Implemented");
                         case BINARY_BINARY_OLD:
                             int oldBinLen = LE.getInt(buffer, pos);
                             pos += 4;
@@ -254,7 +275,7 @@ public final class BSON {
                             pos += binLen;
                             break;
                         case BINARY_UUID_OLD:
-                            throw new RuntimeException("Not Implemented");
+                            throw new DecodeException("Not Implemented");
                         case BINARY_UUID:
                             long mostSignificantBits = buffer.getLong(pos);
                             pos += 8;
@@ -273,19 +294,14 @@ public final class BSON {
                             pos += binLen;
                             break;
                         case BINARY_USERDEFINED:
-                            final byte[] userdef = LE.getBytes(buffer, pos, binLen);
-                            document.put(key, new Binary() {
-                                @Override
-                                public byte[] getBytes() {
-                                    return userdef;
-                                }
-                            });
+                            document.put(key, buffer.getBuffer(pos, pos + binLen));
                             pos += binLen;
                             break;
                     }
                     break;
                 case UNDEFINED:
-                    throw new RuntimeException("Not Implemented");
+                    // undefined has no meaning in Java, so treat it as a NO-OP
+                    break;
                 case OBJECT_ID:
                     document.put(key, new ObjectId(LE.getBytes(buffer, pos, 12)));
                     pos += 12;
@@ -325,7 +341,13 @@ public final class BSON {
                             flags |= Pattern.UNICODE_CASE;
                             continue;
                         }
-                        // TODO: convert flags to BSON flags x,l
+                        if (options.charAt(i) == 'x') {
+                            flags |= Pattern.COMMENTS;
+                            continue;
+                        }
+                        if (options.charAt(i) == 'l') {
+                            flags |= Pattern.UNICODE_CHARACTER_CLASS;
+                        }
                     }
                     document.put(key, Pattern.compile(regex, flags));
                     break;
@@ -333,7 +355,7 @@ public final class BSON {
                 case JSCODE:
                 case SYMBOL:
                 case JSCODE_WS:
-                    throw new RuntimeException("Not Implemented");
+                    throw new DecodeException("Not Implemented");
                 case INT32:
                     document.put(key, LE.getInt(buffer, pos));
                     pos += 4;
@@ -404,9 +426,15 @@ public final class BSON {
                             pos += binLen;
                             break;
                         case BINARY_FUNCTION:
+                            throw new DecodeException("Not Implemented");
                         case BINARY_BINARY_OLD:
+                            int oldBinLen = LE.getInt(buffer, pos);
+                            pos += 4;
+                            list.add(Integer.parseInt(key), LE.getBytes(buffer, pos, oldBinLen));
+                            pos += binLen;
+                            break;
                         case BINARY_UUID_OLD:
-                            throw new RuntimeException("Not Implemented");
+                            throw new DecodeException("Not Implemented");
                         case BINARY_UUID:
                             long mostSingnificantBits = buffer.getLong(pos);
                             pos += 8;
@@ -425,19 +453,14 @@ public final class BSON {
                             pos += binLen;
                             break;
                         case BINARY_USERDEFINED:
-                            final byte[] userdef = LE.getBytes(buffer, pos, binLen);
-                            list.add(Integer.parseInt(key), new Binary() {
-                                @Override
-                                public byte[] getBytes() {
-                                    return userdef;
-                                }
-                            });
+                            list.add(Integer.parseInt(key), buffer.getBuffer(pos, pos + binLen));
                             pos += binLen;
                             break;
                     }
                     break;
                 case UNDEFINED:
-                    throw new RuntimeException("Not Implemented");
+                    // undefined has no meaning in Java, so treat it as a NO-OP
+                    break;
                 case OBJECT_ID:
                     list.add(Integer.parseInt(key), new ObjectId(LE.getBytes(buffer, pos, 12)));
                     pos += 12;
@@ -477,7 +500,13 @@ public final class BSON {
                             flags |= Pattern.UNICODE_CASE;
                             continue;
                         }
-                        // TODO: convert flags to BSON flags x,l
+                        if (options.charAt(i) == 'x') {
+                            flags |= Pattern.COMMENTS;
+                            continue;
+                        }
+                        if (options.charAt(i) == 'l') {
+                            flags |= Pattern.UNICODE_CHARACTER_CLASS;
+                        }
                     }
                     list.add(Integer.parseInt(key), Pattern.compile(regex, flags));
                     break;
@@ -485,13 +514,15 @@ public final class BSON {
                 case JSCODE:
                 case SYMBOL:
                 case JSCODE_WS:
-                    throw new RuntimeException("Not Implemented");
+                    throw new DecodeException("Not Implemented");
                 case INT32:
                     list.add(Integer.parseInt(key), LE.getInt(buffer, pos));
                     pos += 4;
                     break;
                 case TIMESTAMP:
-                    throw new RuntimeException("Not Implemented");
+                    list.add(Integer.parseInt(key), new Timestamp(LE.getLong(buffer, pos)));
+                    pos += 8;
+                    break;
                 case INT64:
                     list.add(Integer.parseInt(key), LE.getLong(buffer, pos));
                     pos += 8;

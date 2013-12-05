@@ -1,5 +1,7 @@
 package com.jetdrone.vertx.mods.bson;
 
+import com.jetdrone.vertx.xson.java.BSON;
+import com.jetdrone.vertx.xson.java.ObjectId;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 
@@ -16,7 +18,7 @@ public class ObjectIdEncodeTest {
         Map<String, ObjectId> json = new HashMap<>();
         json.put("_", new ObjectId("4d88e15b60f486e428412dc9"));
 
-        byte[] bson = BSON.encodeMap(json).getBytes();
+        byte[] bson = BSON.encode(json).getBytes();
 
         byte[] expected = new byte[]{
                 // length

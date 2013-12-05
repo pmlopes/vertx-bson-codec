@@ -1,5 +1,10 @@
-package com.jetdrone.vertx.mods.bson;
+package com.jetdrone.vertx.xson.java;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.security.MessageDigest;
@@ -42,6 +47,23 @@ public final class ObjectId {
         }
 
         PID = pid;
+
+        // register a serializer on JSON
+        JSON.addSerializer(new JsonSerializer<ObjectId>() {
+            @Override
+            public Class<ObjectId> handledType() {
+                return ObjectId.class;
+            }
+
+            @Override
+            public void serialize(ObjectId value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+                if (value == null) {
+                    jgen.writeNull();
+                } else {
+                    jgen.writeString(value.toString());
+                }
+            }
+        });
     }
 
     private static byte charToByte(char ch) {
