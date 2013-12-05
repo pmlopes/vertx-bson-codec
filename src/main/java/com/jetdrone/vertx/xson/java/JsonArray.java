@@ -12,11 +12,13 @@ import java.util.Map;
 
 public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>, List<Object> {
 
+    private static final long serialVersionUID = 1l;
+
     public JsonArray() {
         super();
     }
 
-    public JsonArray(List<Object> list) {
+    public JsonArray(List<?> list) {
         super(list);
     }
 
@@ -92,7 +94,7 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
 
     @SuppressWarnings("unchecked")
     public JsonArray getArray(int index) {
-        List<Object> value = (List<Object>) super.get(index);
+        List<?> value = (List<?>) super.get(index);
         if (value == null) {
             return null;
         }
@@ -106,7 +108,7 @@ public class JsonArray extends ArrayList<Object> implements JsonElement<Integer>
 
     @SuppressWarnings("unchecked")
     public JsonObject getObject(int index) {
-        Map<String, Object> value = (Map<String, Object>) super.get(index);
+        Map<String, ?> value = (Map<String, ?>) super.get(index);
         if (value == null) {
             return null;
         }

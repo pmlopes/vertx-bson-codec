@@ -60,24 +60,24 @@ public abstract class JSON {
         ppMapper.registerModule(EcmaCompat);
     }
 
-    public static void addSerializer(final JsonSerializer serializer) {
+    public static void addSerializer(final JsonSerializer<?> serializer) {
         // Serialize Custom Types
         EcmaCompat.addSerializer(serializer);
     }
 
-    public static String encode(Map jsObject) {
+    public static String encode(Map<String, ?> jsObject) {
         return encode(jsObject, false);
     }
 
-    public static String encode(List jsArray) {
+    public static String encode(List<?> jsArray) {
         return encode(jsArray, false);
     }
 
-    public static String encodePretty(Map jsObject) {
+    public static String encodePretty(Map<String, ?> jsObject) {
         return encode(jsObject, true);
     }
 
-    public static String encodePretty(List jsArray) {
+    public static String encodePretty(List<?> jsArray) {
         return encode(jsArray, true);
     }
 
@@ -107,7 +107,7 @@ public abstract class JSON {
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, Object> decodeObject(byte[] source) {
+    public static Map<String, ?> decodeObject(byte[] source) {
         if (source == null) {
             return null;
         }
@@ -120,7 +120,7 @@ public abstract class JSON {
     }
 
     @SuppressWarnings("unchecked")
-    public static List<Object> decodeArray(byte[] source) {
+    public static List<?> decodeArray(byte[] source) {
         if (source == null) {
             return null;
         }

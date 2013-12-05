@@ -53,19 +53,13 @@ public abstract class BSON {
         throw new RuntimeException("Not Implemented!");
     }
 
-    public static Buffer encode(Map jsObject) {
+    public static Buffer encode(Map<String, ?> jsObject) {
         Buffer buffer = new Buffer();
         // allocate space for the document length
         LE.appendInt(buffer, 0);
 
-        for (Object entry : jsObject.entrySet()) {
-            Map.Entry entrySet = (Map.Entry) entry;
-            Object key = entrySet.getKey();
-            if (!(key instanceof String)) {
-                throw new EncodeException("BSON only allows CString as key");
-            }
-            Object value = entrySet.getValue();
-            encode(buffer, (String) key, value);
+        for (Map.Entry<String, ?> entry : jsObject.entrySet()) {
+            encode(buffer, entry.getKey(), entry.getValue());
         }
 
         LE.setInt(buffer, 0, buffer.length() + 1);
@@ -74,7 +68,7 @@ public abstract class BSON {
     }
 
     // While JSON allows both Object or Array as top level object, BSON only allows Object
-    private static Buffer encode(List list) {
+    private static Buffer encode(List<?> list) {
         Buffer buffer = new Buffer();
         // allocate space for the document length
         LE.appendInt(buffer, 0);
@@ -89,13 +83,14 @@ public abstract class BSON {
         return buffer;
     }
 
-    public static Map<String, Object> decode(Buffer source) {
+    public static Map<String, ?> decode(Buffer source) {
         if (source == null) {
             return null;
         }
         return decodeMap(source, 0);
     }
 
+    @SuppressWarnings("unchecked")
     private static void encode(Buffer buffer, String key, Object value) {
         if (value == null) {
             LE.appendByte(buffer, NULL);
@@ -111,11 +106,11 @@ public abstract class BSON {
         } else if (value instanceof Map) {
             LE.appendByte(buffer, EMBEDDED_DOCUMENT);
             LE.appendCString(buffer, key);
-            buffer.appendBuffer(encode((Map) value));
+            buffer.appendBuffer(encode((Map<String, ?>) value));
         } else if (value instanceof List) {
             LE.appendByte(buffer, ARRAY);
             LE.appendCString(buffer, key);
-            buffer.appendBuffer(encode((List) value));
+            buffer.appendBuffer(encode((List<?>) value));
         } else if (value instanceof UUID) {
             LE.appendByte(buffer, BINARY);
             LE.appendCString(buffer, key);
@@ -220,7 +215,7 @@ public abstract class BSON {
         }
     }
 
-    private static Map<String, Object> decodeMap(Buffer buffer, int pos) {
+    private static Map<String, ?> decodeMap(Buffer buffer, int pos) {
 
         // skip the last 0x00
         int length = pos + LE.getInt(buffer, pos) - 1;
@@ -380,7 +375,7 @@ public abstract class BSON {
         return document;
     }
 
-    private static List<Object> decodeList(Buffer buffer, int pos) {
+    private static List<?> decodeList(Buffer buffer, int pos) {
         // skip the last 0x00
         int length = pos + LE.getInt(buffer, pos) - 1;
         pos += 4;

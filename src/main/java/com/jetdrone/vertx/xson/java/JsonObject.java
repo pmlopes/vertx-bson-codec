@@ -11,11 +11,13 @@ import java.util.Map;
 
 public class JsonObject extends HashMap<String, Object> implements JsonElement<String>, Map<String, Object> {
 
+    private static final long serialVersionUID = 1l;
+
     public JsonObject() {
         super();
     }
 
-    public JsonObject(Map<String, Object> source) {
+    public JsonObject(Map<String, ?> source) {
         super(source);
     }
 
@@ -81,7 +83,7 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
     }
 
     public JsonArray getArray(String key) {
-        List value = (List) super.get(key);
+        List<?> value = (List<?>) super.get(key);
         if (value == null) {
             return null;
         }
@@ -90,14 +92,12 @@ public class JsonObject extends HashMap<String, Object> implements JsonElement<S
             return (JsonArray) value;
         }
 
-        JsonArray res = new JsonArray();
-        res.addAll(value);
-        return res;
+        return new JsonArray(value);
     }
 
     @SuppressWarnings("unchecked")
     public JsonObject getObject(String key) {
-        Map<String, Object> value = (Map<String, Object>) super.get(key);
+        Map<String, ?> value = (Map<String, ?>) super.get(key);
         if (value == null) {
             return null;
         }

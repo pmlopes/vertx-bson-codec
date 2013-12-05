@@ -31,7 +31,7 @@ public final class JSON extends com.jetdrone.vertx.xson.core.JSON {
     }
 
     @SuppressWarnings("unchecked")
-    public static JsonElement decodeElement(Buffer source) {
+    public static JsonElement<?> decodeElement(Buffer source) {
         Object json = decode(source);
 
         if (json == null) {
