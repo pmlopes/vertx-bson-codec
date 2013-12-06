@@ -13,6 +13,7 @@ import com.jetdrone.vertx.xson.core.impl.ThreadLocalUTCDateFormat;
 
 import org.vertx.java.core.json.DecodeException;
 import org.vertx.java.core.json.EncodeException;
+import org.vertx.java.core.json.impl.Base64;
 
 import java.io.IOException;
 import java.util.Date;
@@ -52,6 +53,23 @@ public abstract class JSON {
                     jgen.writeNull();
                 } else {
                     jgen.writeString(DATE_FORMAT.format(value));
+                }
+            }
+        });
+
+        // serialize byte[] as Base64 Strings (same as used to be with Vert.x Json[Object|Array])
+        EcmaCompat.addSerializer(new JsonSerializer<byte[]>() {
+            @Override
+            public Class<byte[]> handledType() {
+                return byte[].class;
+            }
+
+            @Override
+            public void serialize(byte[] value, JsonGenerator jgen, SerializerProvider provider) throws IOException {
+                if (value == null) {
+                    jgen.writeNull();
+                } else {
+                    jgen.writeString(Base64.encodeBytes(value));
                 }
             }
         });
