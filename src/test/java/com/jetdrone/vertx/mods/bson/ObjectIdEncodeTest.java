@@ -1,7 +1,7 @@
 package com.jetdrone.vertx.mods.bson;
 
 import com.jetdrone.vertx.xson.java.BSON;
-import com.jetdrone.vertx.xson.java.ObjectId;
+import com.jetdrone.vertx.xson.java.bson.ObjectId;
 import org.junit.Test;
 import org.vertx.java.core.buffer.Buffer;
 

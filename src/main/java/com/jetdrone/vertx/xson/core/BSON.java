@@ -1,9 +1,9 @@
 package com.jetdrone.vertx.xson.core;
 
 import com.jetdrone.vertx.xson.core.impl.LE;
-import com.jetdrone.vertx.xson.java.Key;
-import com.jetdrone.vertx.xson.java.MD5;
-import com.jetdrone.vertx.xson.java.ObjectId;
+import com.jetdrone.vertx.xson.java.bson.Key;
+import com.jetdrone.vertx.xson.java.bson.MD5;
+import com.jetdrone.vertx.xson.java.bson.ObjectId;
 
 import org.vertx.java.core.buffer.Buffer;
 import org.vertx.java.core.json.DecodeException;

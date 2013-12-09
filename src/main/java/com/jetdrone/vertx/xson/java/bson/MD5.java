@@ -1,4 +1,4 @@
-package com.jetdrone.vertx.xson.java;
+package com.jetdrone.vertx.xson.java.bson;
 
 /**
  * MD5 Hash
