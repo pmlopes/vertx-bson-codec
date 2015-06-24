@@ -1,6 +1,6 @@
 vertx-bson-codec
 ===================
-[![Build Status](https://travis-ci.org/pmlopes/bson.vertx.eventbus.png)](https://travis-ci.org/pmlopes/bson.vertx.eventbus)
+[![Build Status](https://travis-ci.org/pmlopes/mod-bson-io.svg?branch=master)](https://travis-ci.org/pmlopes/mod-bson-io)
 
 BSON Codec for Vert.x 3
 
