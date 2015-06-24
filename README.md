@@ -1,10 +1,10 @@
-bson.vertx.eventbus
+vertx-bson-codec
 ===================
 [![Build Status](https://travis-ci.org/pmlopes/bson.vertx.eventbus.png)](https://travis-ci.org/pmlopes/bson.vertx.eventbus)
 
-BSON EventBus for Vert.x
+BSON Codec for Vert.x 3
 
-Why another event bus?
+Why another codec?
 ----------------------
 The standard EventBus from Vert.x allows Verticles to communicate with each other using JSON. JSON is a generic and fairly
 simple encoding scheme, however it limits the data types to be:
@@ -58,20 +58,10 @@ Type mapping implementation status
 
 Quickstart
 ----------
-There are 2 examples in the code:
+Just register the Codec as any other codec:
 
-* https://github.com/pmlopes/bson.vertx.eventbus/tree/master/example/mods/bson.example-groovy-v1.0
-* https://github.com/pmlopes/bson.vertx.eventbus/tree/master/example/mods/bson.example-java-v1.0
+```
+    EventBus eb = vertx.eventBus();
 
-In a quick overview all you need is:
-
-1. Create a new instance of the BSONEventBus by wrapping the default EventBus
-2. Send and receive java.util.Map as your Objects that are internally converted to BSON
-
-The transformation to and from BSON is totally hidden from you. If you used vert.x with JSON encoding BSON will look
-exactly the same. However instead of having specific classes (like it happens for JSON) BSON works with Maps directly.
-
-Support the development of this module
---------------------------------------
-
-[![Click here to lend your support to: Support com.jetdrone Vert.x modules and make a donation at www.pledgie.com !](http://www.pledgie.com/campaigns/19785.png?skin_name=chrome)](http://www.pledgie.com/campaigns/19785)
+    eb.registerDefaultCodec(BSONDocument.class, new BSONMessageCodec());
+```
