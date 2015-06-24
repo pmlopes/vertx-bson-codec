@@ -1,9 +1,0 @@
-{
-  "description": "BSON codec for Vert.x 2.x",
-  "licenses": ["The Apache Software License Version 2.0"],
-  "author": "Paulo Lopes <pmlopes@gmail.com>",
-
-  "developers": ["pmlopes"],
-  "keywords": ["bson", "eventbus", "binary", "codec"],
-  "homepage": "https://github.com/pmlopes/mod-bson-io"
-}
